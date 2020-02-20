@@ -258,7 +258,9 @@ export const Editable = (props: EditableProps) => {
 
           if (targetRange) {
             const range = ReactEditor.toSlateRange(editor, targetRange)
-
+            if (!range) {
+              return
+            }
             if (!selection || !Range.equals(selection, range)) {
               Transforms.select(editor, range)
             }
