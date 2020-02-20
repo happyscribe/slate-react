@@ -687,6 +687,9 @@ const Editable = (props) => {
                 const [targetRange] = event.getTargetRanges();
                 if (targetRange) {
                     const range = ReactEditor.toSlateRange(editor, targetRange);
+                    if (!range) {
+                        return;
+                    }
                     if (!selection || !Range.equals(selection, range)) {
                         Transforms.select(editor, range);
                     }
