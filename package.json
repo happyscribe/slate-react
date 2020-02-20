@@ -3,7 +3,7 @@
   "description": "Tools for building completely customizable richtext editors with React.",
   "version": "0.57.3",
   "license": "MIT",
-  "repository": "git://github.com/ianstormtaylor/slate.git",
+  "repository": "git://github.com/happyscribe/slate-react.git",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
