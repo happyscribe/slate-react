@@ -1,8 +1,11 @@
-This package contains the React-specific logic for Slate. It's separated further into a series of directories:
+To run locally:
+1. Clone the version v0.57.1 of the slate repo: https://github.com/ianstormtaylor/slate/commit/22d9095c39a0e201878e1df04ef5e35d4d86a596
+2. cd slate/packages and remove slate-react
+3. Pull this repo in slate/packages
+4. cd ..
+5. yarn start
 
-- [**Components**](./src/components) — containing the React components for rendering Slate editors.
-- [**Hooks**](./src/hooks) — containing a few React hooks for Slate editors.
-- [**Plugins**](./src/plugin) — containing the React-specific plugins for Slate editors.
-- [**Utils**](./src/utils) — containing a few private convenience modules.
-
-Feel free to poke around in each of them to learn more!
+To deploy:
+1. Run yarn build in the slate folder
+2. Push the changes to slate-react
+3. Update the commit hash in hs-editor/package.json
