@@ -1079,22 +1079,27 @@ const setFragmentData = (
   const div = document.createElement('div')
   div.appendChild(contents)
   dataTransfer.setData('text/plain', getPlainText(div))
-  addTimestampAnchor({ div, timestamp: getClosestTimestamp() })
+  addTimestampAnchor(div)
   dataTransfer.setData('text/html', div.innerHTML)
 };
 
-const addTimestampAnchor = ({ div, timestamp }) => {
-  const a = document.createElement('a');
-  const linkText = document.createTextNode(`[${timestamp}]`);
-  a.appendChild(linkText);
-  a.href = addParamToUrl({ 
-    urlString: window.location.href, 
-    paramKey: 'position', 
-    paramValue: timestamp 
-  });
-  const space = document.createTextNode(' ');
-  div.insertBefore(space, div.firstChild);
-  div.insertBefore(a, div.firstChild);
+const addTimestampAnchor = (div) => {
+  try {
+    const timestamp = getClosestTimestamp();
+    const a = document.createElement('a');
+    const linkText = document.createTextNode(`[${timestamp}]`);
+    a.appendChild(linkText);
+    a.href = addParamToUrl({ 
+      urlString: window.location.href, 
+      paramKey: 'position', 
+      paramValue: timestamp 
+    });
+    const space = document.createTextNode(' ');
+    div.insertBefore(space, div.firstChild);
+    div.insertBefore(a, div.firstChild);
+  } catch (e) {
+    console.log('ppp: slate-react/src/components/editable.tsx, error: ', e);
+  }
 }
 
 const addParamToUrl = ({ urlString, paramKey, paramValue }) => {
@@ -1106,7 +1111,14 @@ const addParamToUrl = ({ urlString, paramKey, paramValue }) => {
 }
 
 const getClosestTimestamp = () => {
-  return window.getSelection().anchorNode.parentNode.parentNode.getAttribute('data-start');
+  let node = window.getSelection().anchorNode;
+  for (let i = 0; i < 5; i++) {
+    if (node.getAttribute('data-start')) {
+      return node.getAttribute('data-start');
+    }
+    node = node.parentNode;
+  }
+  throw new Error('ppp: Timestamp not found. slate-react/src/components/editable.tsx');
 }
 
 /**
