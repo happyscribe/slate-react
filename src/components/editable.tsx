@@ -1079,20 +1079,18 @@ const setFragmentData = (
   const div = document.createElement('div')
   div.appendChild(contents)
   dataTransfer.setData('text/plain', getPlainText(div))
-  addTimestampAnchor({ div })
+  addTimestampAnchor({ div, timestamp: getClosestTimestamp() })
   dataTransfer.setData('text/html', div.innerHTML)
 };
 
-const addTimestampAnchor = ({ div }) => {
+const addTimestampAnchor = ({ div, timestamp }) => {
   const a = document.createElement('a');
-  const dataStart = window.getSelection().anchorNode.parentNode.parentNode.getAttribute('data-start');
-  console.log('dataStart: ', dataStart);
-  const linkText = document.createTextNode(`[${dataStart}]`);
+  const linkText = document.createTextNode(`[${timestamp}]`);
   a.appendChild(linkText);
   a.href = addParamToUrl({ 
     urlString: window.location.href, 
     paramKey: 'position', 
-    paramValue: dataStart 
+    paramValue: timestamp 
   });
   const space = document.createTextNode(' ');
   div.insertBefore(space, div.firstChild);
@@ -1105,6 +1103,10 @@ const addParamToUrl = ({ urlString, paramKey, paramValue }) => {
   params.set(paramKey, paramValue);
   const baseUrl = urlString.split("?")[0];
   return `${baseUrl}?${params.toString()}`;
+}
+
+const getClosestTimestamp = () => {
+  return window.getSelection().anchorNode.parentNode.parentNode.getAttribute('data-start');
 }
 
 /**
