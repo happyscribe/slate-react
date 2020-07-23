@@ -8,4 +8,7 @@ To run locally:
 To deploy:
 1. Run yarn build in the slate folder
 2. Push the changes to slate-react
-3. Update the commit hash in hs-editor/package.json
+3. npm version [patch | minor ...]
+4. Update the commit hash in hs-editor/package.json
+5. Delete slate-react from hs-editor/package-lock.json
+6. npm i in hs-editor
