@@ -1111,9 +1111,15 @@ const addParamToUrl = ({ urlString, paramKey, paramValue }) => {
 }
 
 const getClosestTimestamp = () => {
-  let node = window.getSelection().anchorNode;
+  const selection = window.getSelection();
+  if (!selection) return;
+  let node = selection.anchorNode;
+  const isRightToLeftSelection = selection.anchorNode !== selection.getRangeAt(0).startContainer;
+  if (isRightToLeftSelection) {
+    node = selection.focusNode;
+  }
   for (let i = 0; i < 5; i++) {
-    if (node.getAttribute('data-start')) {
+    if (node.getAttribute && node.getAttribute('data-start')) {
       return node.getAttribute('data-start');
     }
     node = node.parentNode;
