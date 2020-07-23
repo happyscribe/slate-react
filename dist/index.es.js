@@ -1282,9 +1282,13 @@ const setFragmentData = (dataTransfer, editor) => {
     // Add the content to a <div> so that we can get its inner HTML.
     const div = document.createElement('div');
     div.appendChild(contents);
-    dataTransfer.setData('text/plain', getPlainText(div));
-    addTimestampAnchor(div);
-    dataTransfer.setData('text/html', div.innerHTML);
+    // dataTransfer.setData('text/html', div.innerHTML)
+    const plainText = getPlainText(div);
+    dataTransfer.setData('text/plain', plainText);
+    const simpleDiv = document.createElement('div');
+    simpleDiv.innerHTML = plainText;
+    addTimestampAnchor(simpleDiv);
+    dataTransfer.setData('text/html', simpleDiv.innerHTML);
 };
 const addTimestampAnchor = (div) => {
     try {
