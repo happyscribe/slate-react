@@ -1103,7 +1103,8 @@ const addParamToUrl = ({ urlString, paramKey, paramValue }) => {
   const url = new URL(urlString);
   const params = new URLSearchParams(url.search.slice(1));
   params.set(paramKey, paramValue);
-  return `${urlString}?${params.toString()}`;
+  const baseUrl = urlString.split("?")[0];
+  return `${baseUrl}?${params.toString()}`;
 }
 
 /**
