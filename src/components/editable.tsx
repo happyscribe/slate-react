@@ -1079,60 +1079,70 @@ const setFragmentData = (
   const div = document.createElement('div')
   div.appendChild(contents)
   // dataTransfer.setData('text/html', div.innerHTML)
-  const plainText = getPlainText(div)
+  let plainText = getPlainText(div)
+  // The following string addSpeaker contains a &zwnj; at the end
+  const specialCharacter = '\u{200C}'
+  const addSpeaker = `Add speaker${specialCharacter}`
+  plainText = plainText.replace(new RegExp(addSpeaker, 'g'), '\n')
+  plainText = plainText.replace(new RegExp(specialCharacter, 'g'), '\n')
   dataTransfer.setData('text/plain', plainText)
   const simpleDiv = document.createElement('div')
-  simpleDiv.innerHTML = plainText;
+  simpleDiv.innerHTML = plainText
   addTimestampAnchor(simpleDiv)
   dataTransfer.setData('text/html', simpleDiv.innerHTML)
-};
+}
 
-const addTimestampAnchor = (div) => {
+const addTimestampAnchor = div => {
   try {
     const timestamp = getClosestTimestamp()
-    let formattedTimestamp = `[${new Date(timestamp * 1000).toISOString().substr(11, 8)}]`
+    let formattedTimestamp = `[${new Date(timestamp * 1000)
+      .toISOString()
+      .substr(11, 8)}]`
     if (formattedTimestamp.startsWith('[00:')) {
       formattedTimestamp = formattedTimestamp.replace('[00:', '[')
     }
     const a = document.createElement('a')
     const linkText = document.createTextNode(formattedTimestamp)
-    a.appendChild(linkText);
-    a.href = addParamToUrl({ 
-      urlString: window.location.href, 
-      paramKey: 'position', 
-      paramValue: timestamp 
-    });
-    const space = document.createTextNode(' ');
-    div.insertBefore(space, div.firstChild);
-    div.insertBefore(a, div.firstChild);
+    a.appendChild(linkText)
+    a.href = addParamToUrl({
+      urlString: window.location.href,
+      paramKey: 'position',
+      paramValue: timestamp,
+    })
+    const space = document.createTextNode(' ')
+    div.insertBefore(space, div.firstChild)
+    div.insertBefore(a, div.firstChild)
   } catch (e) {
-    console.log('ppp: slate-react/src/components/editable.tsx, error: ', e);
+    console.log('ppp: slate-react/src/components/editable.tsx, error: ', e)
   }
 }
 
 const addParamToUrl = ({ urlString, paramKey, paramValue }) => {
-  const url = new URL(urlString);
-  const params = new URLSearchParams(url.search.slice(1));
-  params.set(paramKey, paramValue);
-  const baseUrl = urlString.split("?")[0];
-  return `${baseUrl}?${params.toString()}`;
+  const url = new URL(urlString)
+  const params = new URLSearchParams(url.search.slice(1))
+  params.set(paramKey, paramValue)
+  const baseUrl = urlString.split('?')[0]
+  return `${baseUrl}?${params.toString()}`
 }
 
 const getClosestTimestamp = () => {
-  const selection = window.getSelection();
-  if (!selection) return;
-  let node = selection.anchorNode;
-  const isRightToLeftSelection = selection.anchorNode !== selection.getRangeAt(0).startContainer;
+  const selection = window.getSelection()
+  if (!selection) return
+  let node = selection.anchorNode
+  const isRightToLeftSelection =
+    selection.anchorNode !== selection.getRangeAt(0).startContainer
   if (isRightToLeftSelection) {
-    node = selection.focusNode;
+    node = selection.focusNode
   }
   for (let i = 0; i < 5; i++) {
     if (node.getAttribute && node.getAttribute('data-start')) {
-      return node.getAttribute('data-start');
+      return node.getAttribute('data-start')
     }
-    node = node.parentNode;
+    node = node.parentNode
   }
-  throw new Error('ppp: Timestamp not found. slate-react/src/components/editable.tsx');
+  throw new Error(
+    'ppp: Timestamp not found. slate-react/src/components/editable.tsx'
+  )
 }
 
 /**
