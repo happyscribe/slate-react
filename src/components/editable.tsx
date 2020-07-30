@@ -1089,9 +1089,13 @@ const setFragmentData = (
 
 const addTimestampAnchor = (div) => {
   try {
-    const timestamp = getClosestTimestamp();
-    const a = document.createElement('a');
-    const linkText = document.createTextNode(`[${timestamp}]`);
+    const timestamp = getClosestTimestamp()
+    let formattedTimestamp = `[${new Date(timestamp * 1000).toISOString().substr(11, 8)}]`
+    if (formattedTimestamp.startsWith('[00:')) {
+      formattedTimestamp = formattedTimestamp.replace('[00:', '[')
+    }
+    const a = document.createElement('a')
+    const linkText = document.createTextNode(formattedTimestamp)
     a.appendChild(linkText);
     a.href = addParamToUrl({ 
       urlString: window.location.href, 
