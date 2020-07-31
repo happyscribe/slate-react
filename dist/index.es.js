@@ -1284,28 +1284,34 @@ const setFragmentData = (dataTransfer, editor) => {
     div.appendChild(contents);
     // dataTransfer.setData('text/html', div.innerHTML)
     const plainText = getPlainText(div);
-    // const zeroWidthNonJoiner = '\u{200C}'
-    // const zeroWidthJoiner = '\u{200D}'
-    // const addSpeaker = `${zeroWidthNonJoiner}Add speaker${zeroWidthJoiner}`
-    // plainText = plainText.replace(new RegExp(addSpeaker, 'g'), '\n')
-    // plainText = plainText.replace(new RegExp(specialCharacter, 'g'), '\n')
-    const doc = plainTextToDocument(plainText);
-    if (doc) {
-        const formattedText = documentToFormattedText(doc);
-        dataTransfer.setData('text/plain', formattedText);
-        const innerHTML = documentToInnerHTML(doc);
-        const simpleDiv = document.createElement('div');
-        simpleDiv.innerHTML = innerHTML;
-        addTimestampAnchor(simpleDiv);
-        // replaceTextTimestampsWithAnchors(simpleDiv)
-        dataTransfer.setData('text/html', simpleDiv.innerHTML);
+    let doc;
+    const isTranscriptEditor = window.location.href.includes('edit_v2');
+    if (isTranscriptEditor) {
+        doc = plainTextToDocument(plainText);
+        if (doc) {
+            const formattedText = documentToFormattedText(doc);
+            dataTransfer.setData('text/plain', formattedText);
+            const innerHTML = documentToInnerHTML(doc);
+            const simpleDiv = document.createElement('div');
+            simpleDiv.innerHTML = innerHTML;
+            addTimestampAnchor(simpleDiv);
+            // replaceTextTimestampsWithAnchors(simpleDiv)
+            dataTransfer.setData('text/html', simpleDiv.innerHTML);
+        }
+        else {
+            dataTransfer.setData('text/plain', plainText);
+            const simpleDiv = document.createElement('div');
+            simpleDiv.innerHTML = plainText;
+            addTimestampAnchor(simpleDiv);
+            replaceTextTimestampsWithAnchors(simpleDiv);
+            dataTransfer.setData('text/html', simpleDiv.innerHTML);
+        }
     }
     else {
         dataTransfer.setData('text/plain', plainText);
         const simpleDiv = document.createElement('div');
         simpleDiv.innerHTML = plainText;
         addTimestampAnchor(simpleDiv);
-        replaceTextTimestampsWithAnchors(simpleDiv);
         dataTransfer.setData('text/html', simpleDiv.innerHTML);
     }
 };
@@ -1314,7 +1320,7 @@ const plainTextToDocument = text => {
         const pars = [];
         // \u200C is a special character that we instert in Select.js before the Speaker name (&zwnj;)
         const array = text.split(/\u200C/);
-        array.forEach((str, idx) => {
+        array.forEach(str => {
             const timestampRegex = /(\d{2}:\d{2}:\d{2}\.\d{1,3})/;
             const parArray = str.split(timestampRegex);
             const par = {};
