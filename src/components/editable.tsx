@@ -1079,17 +1079,17 @@ const setFragmentData = (
   const div = document.createElement('div')
   div.appendChild(contents)
   // dataTransfer.setData('text/html', div.innerHTML)
-  let plainText = getPlainText(div)
+  const plainText = getPlainText(div)
   // const zeroWidthNonJoiner = '\u{200C}'
   // const zeroWidthJoiner = '\u{200D}'
   // const addSpeaker = `${zeroWidthNonJoiner}Add speaker${zeroWidthJoiner}`
   // plainText = plainText.replace(new RegExp(addSpeaker, 'g'), '\n')
   // plainText = plainText.replace(new RegExp(specialCharacter, 'g'), '\n')
-  const document = plainTextToDocument(text)
-  if (document) {
-    const formattedText = documentToFormattedText(document)
+  const doc = plainTextToDocument(plainText)
+  if (doc) {
+    const formattedText = documentToFormattedText(doc)
     dataTransfer.setData('text/plain', formattedText)
-    const innerHTML = documentToInnerHTML(document)
+    const innerHTML = documentToInnerHTML(doc)
     const simpleDiv = document.createElement('div')
     simpleDiv.innerHTML = innerHTML
     addTimestampAnchor(simpleDiv)
@@ -1173,18 +1173,18 @@ const documentToInnerHTML = doc => {
         if (txt.startsWith('00:')) {
           txt = txt.substring(3)
         }
-        paragraphString += `<br /><a href="${href}">${txt}</a>`
+        paragraphString += `<a href="${href}">[${txt}]</a>`
         if (par.speaker) {
           paragraphString += ` - ${par.speaker}`
         }
-        paragraphString += '\n'
+        paragraphString += '<br />'
       } else if (par.speaker) {
         paragraphString += `${par.speaker}\n`
       }
       paragraphString += `${par.text}`
       return paragraphString
     })
-    .join('\n\n')
+    .join('<br /><br />')
 }
 
 const addTimestampAnchor = div => {
@@ -1204,8 +1204,8 @@ const addTimestampAnchor = div => {
       paramKey: 'position',
       paramValue: timestamp,
     })
-    const space = document.createTextNode(' ')
-    div.insertBefore(space, div.firstChild)
+    const lineBreak = document.createElement('br')
+    div.insertBefore(lineBreak, div.firstChild)
     div.insertBefore(a, div.firstChild)
   } catch (e) {
     // eslint-disable-next-line no-console
