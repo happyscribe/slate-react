@@ -1284,36 +1284,182 @@ const setFragmentData = (dataTransfer, editor) => {
     div.appendChild(contents);
     // dataTransfer.setData('text/html', div.innerHTML)
     const plainText = getPlainText(div);
-    dataTransfer.setData('text/plain', plainText);
-    const simpleDiv = document.createElement('div');
-    simpleDiv.innerHTML = plainText;
-    addTimestampAnchor(simpleDiv);
-    dataTransfer.setData('text/html', simpleDiv.innerHTML);
+    // const zeroWidthNonJoiner = '\u{200C}'
+    // const zeroWidthJoiner = '\u{200D}'
+    // const addSpeaker = `${zeroWidthNonJoiner}Add speaker${zeroWidthJoiner}`
+    // plainText = plainText.replace(new RegExp(addSpeaker, 'g'), '\n')
+    // plainText = plainText.replace(new RegExp(specialCharacter, 'g'), '\n')
+    const doc = plainTextToDocument(plainText);
+    if (doc) {
+        const formattedText = documentToFormattedText(doc);
+        dataTransfer.setData('text/plain', formattedText);
+        const innerHTML = documentToInnerHTML(doc);
+        const simpleDiv = document.createElement('div');
+        simpleDiv.innerHTML = innerHTML;
+        addTimestampAnchor(simpleDiv);
+        // replaceTextTimestampsWithAnchors(simpleDiv)
+        dataTransfer.setData('text/html', simpleDiv.innerHTML);
+    }
+    else {
+        dataTransfer.setData('text/plain', plainText);
+        const simpleDiv = document.createElement('div');
+        simpleDiv.innerHTML = plainText;
+        addTimestampAnchor(simpleDiv);
+        replaceTextTimestampsWithAnchors(simpleDiv);
+        dataTransfer.setData('text/html', simpleDiv.innerHTML);
+    }
 };
-const addTimestampAnchor = (div) => {
+const plainTextToDocument = text => {
+    try {
+        const pars = [];
+        // \u200C is a special character that we instert in Select.js before the Speaker name (&zwnj;)
+        const array = text.split(/\u200C/);
+        array.forEach((str, idx) => {
+            const timestampRegex = /(\d{2}:\d{2}:\d{2}\.\d{1,3})/;
+            const parArray = str.split(timestampRegex);
+            const par = {};
+            if (parArray.length === 1) {
+                par.text = parArray[0];
+            }
+            else if (parArray.length === 3) {
+                if (parArray[0] !== 'Add speaker') {
+                    par.speaker = parArray[0];
+                }
+                par.timestamp = parArray[1];
+                par.text = parArray[2].trim();
+            }
+            else {
+                // eslint-disable-next-line no-console
+                console.log(`This should not happen parArray.length = ${parArray.length}`);
+                par.text = str;
+            }
+            pars.push(par);
+        });
+        return pars;
+    }
+    catch (e) {
+        // eslint-disable-next-line no-console
+        console.log(e);
+    }
+};
+const documentToFormattedText = doc => {
+    return doc
+        .map(par => {
+        let paragraphString = '';
+        if (par.timestamp) {
+            paragraphString += `[${par.timestamp}]`;
+            if (par.speaker) {
+                paragraphString += ` - ${par.speaker}`;
+            }
+            paragraphString += '\n';
+        }
+        else if (par.speaker) {
+            paragraphString += `${par.speaker}\n`;
+        }
+        paragraphString += `${par.text}`;
+        return paragraphString;
+    })
+        .join('\n\n');
+};
+const documentToInnerHTML = doc => {
+    return doc
+        .map(par => {
+        let paragraphString = '';
+        if (par.timestamp) {
+            const str = par.timestamp;
+            const seconds = formattedTimestampToSeconds(str);
+            const href = addParamToUrl({
+                urlString: window.location.href,
+                paramKey: 'position',
+                paramValue: seconds,
+            });
+            let txt = str.split('.')[0];
+            if (txt.startsWith('00:')) {
+                txt = txt.substring(3);
+            }
+            paragraphString += `<a href="${href}">[${txt}]</a>`;
+            if (par.speaker) {
+                paragraphString += ` - ${par.speaker}`;
+            }
+            paragraphString += '<br />';
+        }
+        else if (par.speaker) {
+            paragraphString += `${par.speaker}\n`;
+        }
+        paragraphString += `${par.text}`;
+        return paragraphString;
+    })
+        .join('<br /><br />');
+};
+const addTimestampAnchor = div => {
     try {
         const timestamp = getClosestTimestamp();
+        let formattedTimestamp = `[${new Date(timestamp * 1000)
+            .toISOString()
+            .substr(11, 8)}]`;
+        if (formattedTimestamp.startsWith('[00:')) {
+            formattedTimestamp = formattedTimestamp.replace('[00:', '[');
+        }
         const a = document.createElement('a');
-        const linkText = document.createTextNode(`[${timestamp}]`);
+        const linkText = document.createTextNode(formattedTimestamp);
         a.appendChild(linkText);
         a.href = addParamToUrl({
             urlString: window.location.href,
             paramKey: 'position',
-            paramValue: timestamp
+            paramValue: timestamp,
         });
-        const space = document.createTextNode(' ');
-        div.insertBefore(space, div.firstChild);
+        const lineBreak = document.createElement('br');
+        div.insertBefore(lineBreak, div.firstChild);
         div.insertBefore(a, div.firstChild);
     }
     catch (e) {
+        // eslint-disable-next-line no-console
         console.log('ppp: slate-react/src/components/editable.tsx, error: ', e);
+    }
+};
+const formattedTimestampToSeconds = timestamp => {
+    const [aux, ms] = timestamp.split('.');
+    const [hours, minutes, seconds] = aux.split(':');
+    return (parseFloat(hours) * 3600 +
+        parseFloat(minutes) * 60 +
+        parseFloat(seconds) +
+        parseFloat(ms) / 1000);
+};
+const replaceTextTimestampsWithAnchors = div => {
+    try {
+        const timestampRegex = /(\d{2}:\d{2}:\d{2}\.\d{1,3})/;
+        const array = div.innerHTML.split(timestampRegex);
+        const newArray = [];
+        array.forEach((str, idx) => {
+            if (timestampRegex.test(str)) {
+                const seconds = formattedTimestampToSeconds(str);
+                const href = addParamToUrl({
+                    urlString: window.location.href,
+                    paramKey: 'position',
+                    paramValue: seconds,
+                });
+                let txt = str.split('.')[0];
+                if (txt.startsWith('00:')) {
+                    txt = txt.substring(3);
+                }
+                newArray.push(`<br /><a href="${href}">${str}</a>`);
+            }
+            else {
+                newArray.push('str');
+            }
+        });
+        div.innerHTML = newArray.join('<br />');
+    }
+    catch (e) {
+        // eslint-disable-next-line no-console
+        console.log('ppp: slate-react/src/components/editable.tsx replaceTextTimestampsWithAnchors, error: ', e);
     }
 };
 const addParamToUrl = ({ urlString, paramKey, paramValue }) => {
     const url = new URL(urlString);
     const params = new URLSearchParams(url.search.slice(1));
     params.set(paramKey, paramValue);
-    const baseUrl = urlString.split("?")[0];
+    const baseUrl = urlString.split('?')[0];
     return `${baseUrl}?${params.toString()}`;
 };
 const getClosestTimestamp = () => {
