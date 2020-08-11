@@ -1235,22 +1235,6 @@ const setFragmentData = (dataTransfer, editor) => {
     if (slate.Range.isCollapsed(selection) && !startVoid) {
         return;
     }
-    // Overwriting the default functionality
-    const { getFormattedSelection, getHTMLFormattedSelection } = editor;
-    if (typeof getFormattedSelection === 'function' &&
-        typeof getHTMLFormattedSelection === 'function') {
-        try {
-            const plainText = getFormattedSelection();
-            const htmlText = getHTMLFormattedSelection();
-            dataTransfer.setData('text/plain', plainText);
-            dataTransfer.setData('text/html', htmlText);
-            return;
-        }
-        catch (e) {
-            // eslint-disable-next-line no-console
-            console.log('Error in slate-react/src/components/editable.tsx: ', e);
-        }
-    }
     // Create a fake selection so that we can add a Base64-encoded copy of the
     // fragment to the HTML, to decode on future pastes.
     const domRange = ReactEditor.toDOMRange(editor, selection);
@@ -1302,6 +1286,22 @@ const setFragmentData = (dataTransfer, editor) => {
     const encoded = window.btoa(encodeURIComponent(string));
     attach.setAttribute('data-slate-fragment', encoded);
     dataTransfer.setData('application/x-slate-fragment', encoded);
+    // Overwriting the default functionality
+    const { getFormattedSelection, getHTMLFormattedSelection } = editor;
+    if (typeof getFormattedSelection === 'function' &&
+        typeof getHTMLFormattedSelection === 'function') {
+        try {
+            const plainText = getFormattedSelection();
+            const htmlText = getHTMLFormattedSelection();
+            dataTransfer.setData('text/plain', plainText);
+            dataTransfer.setData('text/html', htmlText);
+            return;
+        }
+        catch (e) {
+            // eslint-disable-next-line no-console
+            console.log('Error in slate-react/src/components/editable.tsx: ', e);
+        }
+    }
     // Add the content to a <div> so that we can get its inner HTML.
     const div = document.createElement('div');
     div.appendChild(contents);
