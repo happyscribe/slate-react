@@ -1279,27 +1279,23 @@ const setFragmentData = (dataTransfer, editor) => {
     const encoded = window.btoa(encodeURIComponent(string));
     attach.setAttribute('data-slate-fragment', encoded);
     dataTransfer.setData('application/x-slate-fragment', encoded);
-    // Overwriting the default functionality
-    const { getFormattedSelection, getHTMLFormattedSelection } = editor;
-    if (typeof getFormattedSelection === 'function' &&
-        typeof getHTMLFormattedSelection === 'function') {
+    // Add the content to a <div> so that we can get its inner HTML.
+    const div = document.createElement('div');
+    div.appendChild(contents);
+    dataTransfer.setData('text/html', div.innerHTML);
+    dataTransfer.setData('text/plain', getPlainText(div));
+    // Overwriting the default text/html
+    const { getHTMLFormattedSelection } = editor;
+    if (typeof getHTMLFormattedSelection === 'function') {
         try {
-            const plainText = getFormattedSelection();
             const htmlText = getHTMLFormattedSelection();
-            dataTransfer.setData('text/plain', plainText);
             dataTransfer.setData('text/html', htmlText);
-            return;
         }
         catch (e) {
             // eslint-disable-next-line no-console
             console.log('Error in slate-react/src/components/editable.tsx: ', e);
         }
     }
-    // Add the content to a <div> so that we can get its inner HTML.
-    const div = document.createElement('div');
-    div.appendChild(contents);
-    dataTransfer.setData('text/html', div.innerHTML);
-    dataTransfer.setData('text/plain', getPlainText(div));
 };
 /**
  * Get a plaintext representation of the content of a node, accounting for block
