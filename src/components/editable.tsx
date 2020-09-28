@@ -1075,7 +1075,6 @@ const setFragmentData = (
   const string = JSON.stringify(fragment)
   const encoded = window.btoa(encodeURIComponent(string))
   attach.setAttribute('data-slate-fragment', encoded)
-  dataTransfer.setData('application/x-slate-fragment', encoded)
 
   // Overwriting the default functionality
   const { getFormattedSelection, getHTMLFormattedSelection } = editor
@@ -1092,6 +1091,9 @@ const setFragmentData = (
     } catch (e) {
       // eslint-disable-next-line no-console
       console.log('Error in slate-react/src/components/editable.tsx: ', e)
+      // Only setData application/x-slate-fragment as a fallback because
+      // we don't want to copy the timestamps of words
+      dataTransfer.setData('application/x-slate-fragment', encoded)
     }
   }
 

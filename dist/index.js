@@ -1285,7 +1285,6 @@ const setFragmentData = (dataTransfer, editor) => {
     const string = JSON.stringify(fragment);
     const encoded = window.btoa(encodeURIComponent(string));
     attach.setAttribute('data-slate-fragment', encoded);
-    dataTransfer.setData('application/x-slate-fragment', encoded);
     // Overwriting the default functionality
     const { getFormattedSelection, getHTMLFormattedSelection } = editor;
     if (typeof getFormattedSelection === 'function' &&
@@ -1300,6 +1299,7 @@ const setFragmentData = (dataTransfer, editor) => {
         catch (e) {
             // eslint-disable-next-line no-console
             console.log('Error in slate-react/src/components/editable.tsx: ', e);
+            dataTransfer.setData('application/x-slate-fragment', encoded);
         }
     }
     // Add the content to a <div> so that we can get its inner HTML.
