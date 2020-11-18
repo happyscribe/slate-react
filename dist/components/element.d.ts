@@ -8,6 +8,7 @@ declare const MemoizedElement: React.MemoExoticComponent<(props: {
     renderElement?: ((props: RenderElementProps) => JSX.Element) | undefined;
     renderLeaf?: ((props: RenderLeafProps) => JSX.Element) | undefined;
     selection: Range | null;
+    elementIndex: Number;
 }) => JSX.Element>;
 /**
  * The default element renderer.

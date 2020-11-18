@@ -193,7 +193,7 @@ var useSelected = () => {
  * Element.
  */
 const Element = (props) => {
-    const { decorate, decorations, element, renderElement = (p) => React.createElement(DefaultElement, Object.assign({}, p)), renderLeaf, selection, } = props;
+    const { decorate, decorations, element, renderElement = (p) => React.createElement(DefaultElement, Object.assign({}, p)), renderLeaf, selection, elementIndex, } = props;
     const ref = useRef(null);
     const editor = useEditor();
     const readOnly = useReadOnly();
@@ -205,6 +205,7 @@ const Element = (props) => {
     const attributes = {
         'data-slate-node': 'element',
         ref,
+        elementIndex,
     };
     if (isInline) {
         attributes['data-slate-inline'] = true;
@@ -331,7 +332,7 @@ const Children = (props) => {
             }
         }
         if (Element$1.isElement(n)) {
-            children.push(React.createElement(MemoizedElement, { decorate: decorate, decorations: ds, element: n, key: key.id, renderElement: renderElement, renderLeaf: renderLeaf, selection: sel }));
+            children.push(React.createElement(MemoizedElement, { decorate: decorate, decorations: ds, element: n, key: key.id, renderElement: renderElement, renderLeaf: renderLeaf, selection: sel, elementIndex: i }));
         }
         else {
             children.push(React.createElement(MemoizedText, { decorations: ds, key: key.id, isLast: isLeafBlock && i === node.children.length - 1, parent: node, renderLeaf: renderLeaf, text: n }));
@@ -1292,6 +1293,8 @@ const setFragmentData = (dataTransfer, editor) => {
         catch (e) {
             // eslint-disable-next-line no-console
             console.log('Error in slate-react/src/components/editable.tsx: ', e);
+            // Only setData application/x-slate-fragment as a fallback because
+            // we don't want to copy the timestamps of words
             dataTransfer.setData('application/x-slate-fragment', encoded);
         }
     }

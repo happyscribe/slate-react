@@ -27,6 +27,7 @@ const Element = (props: {
   renderElement?: (props: RenderElementProps) => JSX.Element
   renderLeaf?: (props: RenderLeafProps) => JSX.Element
   selection: Range | null
+  elementIndex: Number
 }) => {
   const {
     decorate,
@@ -35,6 +36,7 @@ const Element = (props: {
     renderElement = (p: RenderElementProps) => <DefaultElement {...p} />,
     renderLeaf,
     selection,
+    elementIndex,
   } = props
   const ref = useRef<HTMLElement>(null)
   const editor = useEditor()
@@ -62,9 +64,11 @@ const Element = (props: {
     contentEditable?: false
     dir?: 'rtl'
     ref: any
+    elementIndex: Number
   } = {
     'data-slate-node': 'element',
     ref,
+    elementIndex,
   }
 
   if (isInline) {

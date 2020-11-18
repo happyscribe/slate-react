@@ -62,6 +62,7 @@ const Children = (props: {
           renderElement={renderElement}
           renderLeaf={renderLeaf}
           selection={sel}
+          elementIndex={i}
         />
       )
     } else {
