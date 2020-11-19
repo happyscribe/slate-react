@@ -36,9 +36,13 @@ const ChildrenVirtual = (props: {
     !editor.isInline(node) &&
     Editor.hasInlines(editor, node)
 
-  const { Container, startIndex, endIndex } = useVirtualization(
-    node.children.length
-  )
+  const {
+    startIndex,
+    endIndex,
+    containerRef,
+    containerStyle,
+    onWheel,
+  } = useVirtualization(node.children.length)
 
   for (let i = startIndex; i <= endIndex; i++) {
     const p = path.concat(i)
@@ -86,7 +90,30 @@ const ChildrenVirtual = (props: {
     NODE_TO_PARENT.set(n, node)
   }
 
-  return <Container>{children}</Container>
+  return (
+    <div
+      style={{
+        position: 'relative',
+        minWidth: '100px',
+        minHeight: '100px',
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden',
+      }}
+      onWheel={onWheel}
+    >
+      <div
+        ref={containerRef}
+        style={{
+          position: 'absolute',
+          width: '100%',
+          ...containerStyle,
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  )
 }
 
 export default ChildrenVirtual
@@ -126,32 +153,8 @@ const useVirtualization = (childrenLength: number) => {
     }
   }, [state])
 
-  const Container = ({ children }) => (
-    <div
-      style={{
-        position: 'relative',
-        minWidth: '100px',
-        minHeight: '100px',
-        width: '100%',
-        height: '100%',
-        overflow: 'hidden',
-      }}
-      onWheel={onWheel}
-    >
-      <div
-        ref={containerRef}
-        style={{
-          position: 'absolute',
-          width: '100%',
-          ...containerStyle,
-        }}
-      >
-        {children}
-      </div>
-    </div>
-  )
 
-  return { Container, startIndex, endIndex }
+  return { startIndex, endIndex, containerRef, containerStyle, onWheel }
 }
 
 const handleWeel = ({ e, container, state, setState }) => {
