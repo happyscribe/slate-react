@@ -71,7 +71,7 @@ export const useVirtualization = (childrenLength) => {
 
   return {
     startIndex,
-    endIndex,
+    endIndex: Math.min(endIndex, childrenLength - 1),
     containerRef,
     containerStyle: {
       position: 'absolute',

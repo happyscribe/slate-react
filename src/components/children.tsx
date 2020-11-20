@@ -7,7 +7,7 @@ import { ReactEditor } from '..'
 import { useEditor } from '../hooks/use-editor'
 import { NODE_TO_INDEX, NODE_TO_PARENT } from '../utils/weak-maps'
 import { RenderElementProps, RenderLeafProps } from './editable'
-import { useVirtualization } from 'slate-react/src/components/ReactWindow'
+import { useVirtualization } from './ReactWindow'
 
 /**
  * Children.
@@ -56,7 +56,7 @@ const Children = (props: {
     const range = Editor.range(editor, p)
     const sel = selection && Range.intersection(range, selection)
 
-    // Commented out for performance. We don't use decorations
+    // Commented out to improve performance. We don't use decorations
     // const ds = decorate([n, p])
     const ds = [] as Range[]
     // for (const dec of decorations) {
