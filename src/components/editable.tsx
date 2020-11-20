@@ -11,7 +11,7 @@ import {
 import debounce from 'debounce'
 import scrollIntoView from 'scroll-into-view-if-needed'
 
-import ChildrenVirtual from './childrenVirtual'
+import Children from './children'
 import Hotkeys from '../utils/hotkeys'
 import { IS_FIREFOX, IS_SAFARI } from '../utils/environment'
 import { ReactEditor } from '..'
@@ -903,7 +903,7 @@ export const Editable = (props: EditableProps) => {
           [readOnly, attributes.onPaste]
         )}
       >
-        <ChildrenVirtual
+        <Children
           decorate={decorate}
           decorations={decorations}
           node={editor}
