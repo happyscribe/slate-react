@@ -40,11 +40,11 @@ export const useVirtualization = (childrenLength, scrollToIndex) => {
   const performingAction = useRef(null);
 
   useEffect(() => {
-    loadStyles()
+    loadStyles();
   }, [])
 
   const onWheel = (e) => {
-    handleWeel({
+    handleWheel({
       deltaY: e.deltaY,
       container: containerRef.current,
       containerPositionRef,
@@ -99,7 +99,7 @@ export const useVirtualization = (childrenLength, scrollToIndex) => {
     });
   });
 
-  console.log('endIndexxx: ', endIndex)
+  console.log({ startIndex, endIndex, ...containerPositionRef.current });
 
   return {
     startIndex,
@@ -110,7 +110,7 @@ export const useVirtualization = (childrenLength, scrollToIndex) => {
   };
 };
 
-const handleWeel = ({
+const handleWheel = ({
   deltaY,
   container,
   containerPositionRef,
@@ -232,8 +232,6 @@ const handleScrollDown = ({
   performingAction,
   childrenLength,
 }) => {
-  if (indexes.endIndex === childrenLength - 1) return true;
-
   const {
     updatingIndexes,
     startIndex,
@@ -265,8 +263,6 @@ const handleScrollUp = ({
   performingAction,
   childrenLength,
 }) => {
-  if (indexes.startIndex === 0) return true;
-
   const {
     updatingIndexes,
     startIndex,
@@ -346,11 +342,10 @@ const calculateElementsToAdd = ({ elements, container, scrollingDown }) => {
   let numElementsToAdd = 0;
 
   const element = scrollingDown ? elements[elements.length - 1] : elements[0];
-  const distance = distanceFromElementToVisibleDiv({
-    container,
-    element,
-    scrollingDown,
-  });
+
+  const distance = scrollingDown
+    ? distanceFromBottomElementToVisibleDiv({ container, element })
+    : distanceFromTopElementToVisibleDiv({ container, element });
 
   const isWindowFull = element.offsetHeight + distance >= EXTRA_WINDOW_SPACE;
   if (!isWindowFull) {
@@ -392,23 +387,24 @@ const calculateElementsToRemove = ({ elements, container, scrollingDown }) => {
 };
 
 const shouldBeRemoved = ({ container, element, scrollingDown }) => {
-  return (
-    distanceFromElementToVisibleDiv({ container, element, scrollingDown }) >
-    EXTRA_WINDOW_SPACE
-  );
+  const distance = scrollingDown
+    ? distanceFromTopElementToVisibleDiv({ container, element })
+    : distanceFromBottomElementToVisibleDiv({ container, element });
+  return distance > EXTRA_WINDOW_SPACE;
 };
 
-const distanceFromElementToVisibleDiv = ({
-  container,
-  element,
-  scrollingDown,
-}) => {
+const distanceFromTopElementToVisibleDiv = ({ container, element }) => {
   const offsetParentRect = container.offsetParent.getBoundingClientRect();
   const elementRect = element.getBoundingClientRect();
 
-  return scrollingDown
-    ? offsetParentRect.top - elementRect.bottom
-    : elementRect.top - offsetParentRect.bottom;
+  return offsetParentRect.top - elementRect.bottom;
+};
+
+const distanceFromBottomElementToVisibleDiv = ({ container, element }) => {
+  const offsetParentRect = container.offsetParent.getBoundingClientRect();
+  const elementRect = element.getBoundingClientRect();
+
+  return elementRect.top - offsetParentRect.bottom;
 };
 
 const updatePosition = ({
