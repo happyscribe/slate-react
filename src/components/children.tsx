@@ -7,7 +7,8 @@ import { ReactEditor } from '..'
 import { useEditor } from '../hooks/use-editor'
 import { NODE_TO_INDEX, NODE_TO_PARENT } from '../utils/weak-maps'
 import { RenderElementProps, RenderLeafProps } from './editable'
-import { useVirtualization } from './ReactWindow'
+import { useVirtualization } from './react-window/ReactWindow'
+import { ScrollBar } from './react-window/ScrollBar'
 
 /**
  * Children.
@@ -20,6 +21,7 @@ const Children = (props: {
   renderElement?: (props: RenderElementProps) => JSX.Element
   renderLeaf?: (props: RenderLeafProps) => JSX.Element
   selection: Range | null
+  scrollToIndex: Number | null
 }) => {
   const {
     decorate,
@@ -28,6 +30,7 @@ const Children = (props: {
     renderElement,
     renderLeaf,
     selection,
+    scrollToIndex,
   } = props
   const editor = useEditor()
   const path = ReactEditor.findPath(editor, node)
@@ -40,7 +43,7 @@ const Children = (props: {
   const isRoot = path.length === 0
 
   const { startIndex, endIndex, containerRef, containerStyle, onWheel } = isRoot
-    ? useVirtualization(node.children.length)
+    ? useVirtualization(node.children.length, scrollToIndex)
     : {
         startIndex: 0,
         endIndex: node.children.length - 1,
@@ -99,20 +102,15 @@ const Children = (props: {
 
   if (containerRef) {
     return (
-      <div
-        style={{
-          position: 'relative',
-          minWidth: '100px',
-          minHeight: '100px',
-          width: '100%',
-          height: '100%',
-          overflow: 'hidden',
-        }}
-        onWheel={onWheel}
-      >
-        <div ref={containerRef} style={containerStyle}>
+      <div className="react-window-offset-parent" onWheel={onWheel}>
+        <div ref={containerRef} className="react-window-container">
           {children}
         </div>
+        <ScrollBar
+          startIndex={startIndex}
+          endIndex={endIndex}
+          childrenLength={children.length}
+        />
       </div>
     )
   }
