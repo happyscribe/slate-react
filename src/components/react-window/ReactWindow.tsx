@@ -352,9 +352,9 @@ const calculateElementsToAdd = ({ elements, container, scrollingDown }) => {
     scrollingDown,
   });
 
-  const isWindowFull = element.offsetHeight - distance >= EXTRA_WINDOW_SPACE;
+  const isWindowFull = element.offsetHeight + distance >= EXTRA_WINDOW_SPACE;
   if (!isWindowFull) {
-    const gapToFill = EXTRA_WINDOW_SPACE + distance - element.offsetHeight;
+    const gapToFill = EXTRA_WINDOW_SPACE - distance - element.offsetHeight;
     numElementsToAdd = Math.trunc(gapToFill / element.offsetHeight) + 1;
   }
 

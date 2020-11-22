@@ -42,13 +42,12 @@ const Children = (props: {
 
   const isRoot = path.length === 0
 
-  const { startIndex, endIndex, containerRef, containerStyle, onWheel } = isRoot
+  const { startIndex, endIndex, containerRef, onWheel } = isRoot
     ? useVirtualization(node.children.length, scrollToIndex)
     : {
         startIndex: 0,
         endIndex: node.children.length - 1,
         containerRef: null,
-        containerStyle: null,
         onWheel: null,
       }
 
