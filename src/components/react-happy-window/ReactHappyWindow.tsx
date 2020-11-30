@@ -312,7 +312,8 @@ const handleItemCountChanged = ({
   stateRef,
   updateIndexes,
 }) => {
-  const { indexes } = stateRef.current;
+  const { indexes, itemCount } = stateRef.current;
+  stateRef.current.itemCount = newItemCount;
   const container = containerRef.current;
 
   const totalElementsHeight = averageElementHeight(container) * newItemCount;
@@ -327,10 +328,23 @@ const handleItemCountChanged = ({
   if (newItemCount === 0 || isNaN(newItemCount)) {
     stateRef.current.indexes = { startIndex: 0, numElements: 0 };
   } else {
-    stateRef.current.itemCount = newItemCount;
     updateIndexes({
       startIndex: indexes.startIndex,
       numElements: NUM_ELEMENTS_INITIAL,
+    });
+    if (newItemCount > itemCount) {
+      // -1 so that it thinks that it's a scroll down and adds items below
+      stateRef.current.lastHandledScrollTop =
+        containerRef.current.offsetParent.scrollTop - 1;
+    } else {
+      // +1 so that it thinks that it's a scroll up and adds items above
+      stateRef.current.lastHandledScrollTop =
+        containerRef.current.offsetParent.scrollTop + 1;
+    }
+    handleSmoothScroll({
+      container,
+      stateRef,
+      updateIndexes,
     });
   }
 };
@@ -529,8 +543,8 @@ const fixPositionAfterRender = ({
     ) {
       // Simulate a scroll to load more items
       stateRef.current.nextLayoutEffect = null;
-      // -1 so that it thinks that it's a scroll up and adds items above
-      stateRef.current.lastHandledScrollTop = offsetParent.scrollTop - 1;
+      // +1 so that it thinks that it's a scroll up and adds items above
+      stateRef.current.lastHandledScrollTop = offsetParent.scrollTop + 1;
       handleScroll({
         container,
         hasJumped: false,
