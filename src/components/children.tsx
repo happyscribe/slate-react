@@ -7,8 +7,7 @@ import { ReactEditor } from '..'
 import { useEditor } from '../hooks/use-editor'
 import { NODE_TO_INDEX, NODE_TO_PARENT } from '../utils/weak-maps'
 import { RenderElementProps, RenderLeafProps } from './editable'
-import { useVirtualization } from './react-window/ReactWindow'
-import { ScrollBar } from './react-window/ScrollBar'
+import { ReactHappyWindow } from './react-happy-window/ReactHappyWindow'
 
 /**
  * Children.
@@ -42,16 +41,7 @@ const Children = (props: {
 
   const isRoot = path.length === 0
 
-  const { startIndex, endIndex, containerRef, onWheel } = isRoot
-    ? useVirtualization(node.children.length, scrollToIndex)
-    : {
-        startIndex: 0,
-        endIndex: node.children.length - 1,
-        containerRef: null,
-        onWheel: null,
-      }
-
-  for (let i = startIndex; i <= endIndex; i++) {
+  const renderChild = (i: number) => {
     const p = path.concat(i)
     const n = node.children[i] as Descendant
     const key = ReactEditor.findKey(editor, n)
@@ -69,8 +59,11 @@ const Children = (props: {
     //   }
     // }
 
+    NODE_TO_INDEX.set(n, i)
+    NODE_TO_PARENT.set(n, node)
+
     if (Element.isElement(n)) {
-      children.push(
+      return (
         <ElementComponent
           decorate={decorate}
           decorations={ds}
@@ -83,7 +76,7 @@ const Children = (props: {
         />
       )
     } else {
-      children.push(
+      return (
         <TextComponent
           decorations={ds}
           key={key.id}
@@ -94,25 +87,25 @@ const Children = (props: {
         />
       )
     }
-
-    NODE_TO_INDEX.set(n, i)
-    NODE_TO_PARENT.set(n, node)
   }
 
-  if (containerRef) {
+
+  if (isRoot) {
     return (
-      <div className="react-window-offset-parent" onWheel={onWheel}>
-        <div ref={containerRef} className="react-window-container">
-          {children}
-        </div>
-        <ScrollBar
-          startIndex={startIndex}
-          endIndex={endIndex}
-          childrenLength={children.length}
-        />
-      </div>
+      <ReactHappyWindow
+        // scrollToIndexObject={scrollToIndexObject}
+        itemCount={node.children.length}
+        renderElement={renderChild}
+        paddingTopPx={100}
+        paddingBottomPx={200}
+      />
     )
   }
+
+  for (let i = 0; i < node.children.length; i++) {
+    children.push(renderChild(i))
+  }
+
   return <React.Fragment>{children}</React.Fragment>
 }
 
