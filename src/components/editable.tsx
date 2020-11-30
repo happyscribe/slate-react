@@ -79,6 +79,8 @@ export type EditableProps = {
   renderElement?: (props: RenderElementProps) => JSX.Element
   renderLeaf?: (props: RenderLeafProps) => JSX.Element
   as?: React.ElementType
+  paddingTopPx?: number
+  paddingBottomPx?: number
 } & React.TextareaHTMLAttributes<HTMLDivElement>
 
 /**
@@ -96,6 +98,8 @@ export const Editable = (props: EditableProps) => {
     renderLeaf,
     style = {},
     as: Component = 'div',
+    paddingTopPx,
+    paddingBottomPx,
     ...attributes
   } = props
   const editor = useSlate()
@@ -910,6 +914,8 @@ export const Editable = (props: EditableProps) => {
           renderElement={renderElement}
           renderLeaf={renderLeaf}
           selection={editor.selection}
+          paddingTopPx={paddingTopPx}
+          paddingBottomPx={paddingBottomPx}
         />
       </Component>
     </ReadOnlyContext.Provider>
