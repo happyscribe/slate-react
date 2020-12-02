@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useEffect, useRef, createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { useLayoutEffect, useEffect, useRef, createContext, useContext, useMemo, useCallback, useState } from 'react';
 import { Path, Node as Node$1, Editor, Text as Text$1, Range, Element as Element$1, Transforms } from 'slate';
 import debounce from 'debounce';
 import scrollIntoView from 'scroll-into-view-if-needed';
@@ -307,226 +307,18 @@ const useEditor = () => {
     return editor;
 };
 
-/* eslint-disable prettier/prettier */
-const NUM_ELEMENTS_INITIAL = 10;
-const EXTRA_WINDOW_SPACE = 500;
-const useVirtualization = (childrenLength) => {
-    const [state, setState] = useState({
-        startIndex: 0,
-        endIndex: NUM_ELEMENTS_INITIAL,
-        containerPosition: { top: '0px' },
-    });
-    const { startIndex, endIndex, containerPosition } = state;
-    const containerRef = useRef();
-    const stateRef = useRef();
-    stateRef.current = { ...state, childrenLength };
-    const isUpdatingStateRef = useRef(false);
-    const onWheel = useCallback((e) => {
-        handleWeel({
-            e,
-            container: containerRef.current,
-            state: stateRef.current,
-            setState,
-            isUpdatingStateRef,
-        });
-    }, [containerRef, stateRef]);
-    useEffect(() => {
-        anchorToTop({
-            isUpdatingStateRef,
-            container: containerRef.current,
-            state,
-            setState,
-        });
-    }, [state]);
-    return {
-        startIndex,
-        endIndex: Math.min(endIndex, childrenLength - 1),
-        containerRef,
-        containerStyle: {
-            position: 'absolute',
-            width: '100%',
-            ...containerPosition,
-        },
-        onWheel,
-    };
-};
-const handleWeel = ({ e, container, state, setState, isUpdatingStateRef }) => {
-    e.stopPropagation();
-    if (isUpdatingStateRef.current)
-        return;
-    const { deltaY } = e;
-    const scrollingDown = deltaY > 0;
-    updatePosition({ container, deltaY, scrollingDown });
-    if (scrollingDown) {
-        handleScrollDown({ container, state, setState, isUpdatingStateRef });
-    }
-    else {
-        handleScrollUp({ container, state, setState, isUpdatingStateRef });
-    }
-};
-const handleScrollDown = ({ container, state, setState, isUpdatingStateRef, }) => {
-    if (state.endIndex === state.childrenLength - 1)
-        return;
-    if (currentBottom(container) > -EXTRA_WINDOW_SPACE) {
-        const { newStartIndex, newEndIndex, heightOfRemovedElements, } = calculateNewIndexes({
-            state,
-            container,
-            scrollingDown: true,
-        });
-        const newTop = currentTop(container) + heightOfRemovedElements;
-        setState({
-            startIndex: newStartIndex,
-            endIndex: newEndIndex,
-            containerPosition: { top: `${newTop}px` },
-        });
-        // eslint-disable-next-line no-param-reassign
-        isUpdatingStateRef.current = true;
-    }
-};
-const handleScrollUp = ({ container, state, setState, isUpdatingStateRef }) => {
-    if (state.startIndex === 0)
-        return;
-    if (currentTop(container) > -EXTRA_WINDOW_SPACE) {
-        const { newStartIndex, newEndIndex, heightOfRemovedElements, } = calculateNewIndexes({
-            state,
-            container,
-            scrollingDown: false,
-        });
-        const newBottom = currentBottom(container) + heightOfRemovedElements;
-        setState({
-            startIndex: newStartIndex,
-            endIndex: newEndIndex,
-            containerPosition: { bottom: `${newBottom}px` },
-        });
-        // eslint-disable-next-line no-param-reassign
-        isUpdatingStateRef.current = true;
-    }
-};
-const updatePosition = ({ container, deltaY, scrollingDown }) => {
-    const top = currentTop(container);
-    const bottom = currentBottom(container);
-    if (scrollingDown && bottom > 0)
-        return;
-    if (!scrollingDown && top > 0)
-        return;
-    const { style } = container;
-    if (style.top) {
-        if (bottom + deltaY > 0) {
-            // eslint-disable-next-line no-param-reassign
-            deltaY = -bottom;
-        }
-        const newTop = Math.min(0, top - deltaY);
-        style.top = `${newTop}px`;
-    }
-};
-const calculateNewIndexes = ({ state, container, scrollingDown }) => {
-    const elements = container.children;
-    const { numElementsToRemove, heightOfRemovedElements, } = calculateElementsToRemove({
-        elements,
-        container,
-        scrollingDown,
-    });
-    let newStartIndex = state.startIndex;
-    let newEndIndex = state.endIndex;
-    const numElementsToAdd = 1; // If the elements are small we should add more than 1
-    if (scrollingDown) {
-        newStartIndex += numElementsToRemove;
-        newEndIndex = Math.min(state.childrenLength - 1, newEndIndex + numElementsToAdd);
-    }
-    else {
-        newStartIndex = Math.max(0, newStartIndex - numElementsToAdd);
-        newEndIndex -= numElementsToRemove;
-    }
-    return {
-        newStartIndex,
-        newEndIndex,
-        heightOfRemovedElements,
-    };
-};
-const calculateElementsToRemove = ({ elements, container, scrollingDown }) => {
-    let numElementsToRemove = 0;
-    let heightOfRemovedElements = 0;
-    if (scrollingDown) {
-        for (let i = 0; i < elements.length; i += 1) {
-            const element = elements[i];
-            if (shouldBeRemoved({ container, element, scrollingDown })) {
-                numElementsToRemove += 1;
-                heightOfRemovedElements += element.offsetHeight;
-            }
-            else {
-                break;
-            }
-        }
-    }
-    else {
-        for (let i = elements.length - 1; i >= 0; i -= 1) {
-            const element = elements[i];
-            if (shouldBeRemoved({ container, element, scrollingDown })) {
-                numElementsToRemove += 1;
-                heightOfRemovedElements += element.offsetHeight;
-            }
-            else {
-                break;
-            }
-        }
-    }
-    return { numElementsToRemove, heightOfRemovedElements };
-};
-const shouldBeRemoved = ({ container, element, scrollingDown }) => {
-    const offsetParentRect = container.offsetParent.getBoundingClientRect();
-    const elementRect = element.getBoundingClientRect();
-    const distanceFromElementToVisibleDiv = scrollingDown
-        ? offsetParentRect.top - elementRect.bottom
-        : elementRect.top - offsetParentRect.bottom;
-    return distanceFromElementToVisibleDiv > EXTRA_WINDOW_SPACE;
-};
-const anchorToTop = ({ isUpdatingStateRef, container, state, setState }) => {
-    if (!isUpdatingStateRef.current)
-        return;
-    const { style } = container;
-    if (style.bottom) {
-        const newTop = currentTop(container);
-        setState({
-            ...state,
-            containerPosition: { top: `${newTop}px` },
-        });
-    }
-    else {
-        // eslint-disable-next-line no-param-reassign
-        isUpdatingStateRef.current = false;
-    }
-};
-const currentTop = (container) => {
-    return container.offsetTop;
-};
-const currentBottom = (container) => {
-    return (container.offsetParent.offsetHeight -
-        container.offsetTop -
-        container.offsetHeight);
-};
-
 /**
  * Children.
  */
 const Children = (props) => {
-    const { decorate, decorations, node, renderElement, renderLeaf, selection, } = props;
+    const { decorate, decorations, node, renderElement, renderLeaf, selection, paddingTopPx, paddingBottomPx, scrollToIndexObject, ReactHappyWindow, } = props;
     const editor = useEditor();
     const path = ReactEditor.findPath(editor, node);
     const children = [];
     const isLeafBlock = Element$1.isElement(node) &&
         !editor.isInline(node) &&
         Editor.hasInlines(editor, node);
-    const isRoot = path.length === 0;
-    const { startIndex, endIndex, containerRef, containerStyle, onWheel } = isRoot
-        ? useVirtualization(node.children.length)
-        : {
-            startIndex: 0,
-            endIndex: node.children.length - 1,
-            containerRef: null,
-            containerStyle: null,
-            onWheel: null,
-        };
-    for (let i = startIndex; i <= endIndex; i++) {
+    const renderChild = (i) => {
         const p = path.concat(i);
         const n = node.children[i];
         const key = ReactEditor.findKey(editor, n);
@@ -541,25 +333,20 @@ const Children = (props) => {
         //     ds.push(d)
         //   }
         // }
-        if (Element$1.isElement(n)) {
-            children.push(React.createElement(MemoizedElement, { decorate: decorate, decorations: ds, element: n, key: key.id, renderElement: renderElement, renderLeaf: renderLeaf, selection: sel, elementIndex: i }));
-        }
-        else {
-            children.push(React.createElement(MemoizedText, { decorations: ds, key: key.id, isLast: isLeafBlock && i === node.children.length - 1, parent: node, renderLeaf: renderLeaf, text: n }));
-        }
         NODE_TO_INDEX.set(n, i);
         NODE_TO_PARENT.set(n, node);
+        if (Element$1.isElement(n)) {
+            return (React.createElement(MemoizedElement, { decorate: decorate, decorations: ds, element: n, key: key.id, renderElement: renderElement, renderLeaf: renderLeaf, selection: sel, elementIndex: i }));
+        }
+        else {
+            return (React.createElement(MemoizedText, { decorations: ds, key: key.id, isLast: isLeafBlock && i === node.children.length - 1, parent: node, renderLeaf: renderLeaf, text: n }));
+        }
+    };
+    if (ReactHappyWindow) {
+        return (React.createElement(ReactHappyWindow, { itemCount: node.children.length, paddingTopPx: paddingTopPx, paddingBottomPx: paddingBottomPx, renderElement: renderChild, scrollToIndexObject: scrollToIndexObject }));
     }
-    if (containerRef) {
-        return (React.createElement("div", { style: {
-                position: 'relative',
-                minWidth: '100px',
-                minHeight: '100px',
-                width: '100%',
-                height: '100%',
-                overflow: 'hidden',
-            }, onWheel: onWheel },
-            React.createElement("div", { ref: containerRef, style: containerStyle }, children)));
+    for (let i = 0; i < node.children.length; i++) {
+        children.push(renderChild(i));
     }
     return React.createElement(React.Fragment, null, children);
 };
@@ -791,7 +578,7 @@ var getEditableChild = (parent, index, direction) => {
  * Editable.
  */
 const Editable = (props) => {
-    const { autoFocus, decorate = defaultDecorate, onDOMBeforeInput: propsOnDOMBeforeInput, placeholder, readOnly = false, renderElement, renderLeaf, style = {}, as: Component = 'div', ...attributes } = props;
+    const { autoFocus, decorate = defaultDecorate, onDOMBeforeInput: propsOnDOMBeforeInput, placeholder, readOnly = false, renderElement, renderLeaf, style = {}, as: Component = 'div', paddingTopPx, paddingBottomPx, scrollToIndexObject, ReactHappyWindow, ...attributes } = props;
     const editor = useSlate();
     const ref = useRef(null);
     // Update internal state on each render.
@@ -1384,7 +1171,7 @@ const Editable = (props) => {
                     ReactEditor.insertData(editor, event.clipboardData);
                 }
             }, [readOnly, attributes.onPaste]) }),
-            React.createElement(Children, { decorate: decorate, decorations: decorations, node: editor, renderElement: renderElement, renderLeaf: renderLeaf, selection: editor.selection }))));
+            React.createElement(Children, { decorate: decorate, decorations: decorations, node: editor, renderElement: renderElement, renderLeaf: renderLeaf, selection: editor.selection, paddingTopPx: paddingTopPx, paddingBottomPx: paddingBottomPx, scrollToIndexObject: scrollToIndexObject, ReactHappyWindow: ReactHappyWindow }))));
 };
 /**
  * A default memoized decorate function.

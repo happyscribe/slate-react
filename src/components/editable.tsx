@@ -81,6 +81,8 @@ export type EditableProps = {
   as?: React.ElementType
   paddingTopPx?: number
   paddingBottomPx?: number
+  scrollToIndexObject?: object
+  ReactHappyWindow?: React.Component
 } & React.TextareaHTMLAttributes<HTMLDivElement>
 
 /**
@@ -100,6 +102,8 @@ export const Editable = (props: EditableProps) => {
     as: Component = 'div',
     paddingTopPx,
     paddingBottomPx,
+    scrollToIndexObject,
+    ReactHappyWindow,
     ...attributes
   } = props
   const editor = useSlate()
@@ -916,6 +920,8 @@ export const Editable = (props: EditableProps) => {
           selection={editor.selection}
           paddingTopPx={paddingTopPx}
           paddingBottomPx={paddingBottomPx}
+          scrollToIndexObject={scrollToIndexObject}
+          ReactHappyWindow={ReactHappyWindow}
         />
       </Component>
     </ReadOnlyContext.Provider>

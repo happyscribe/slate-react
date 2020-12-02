@@ -7,7 +7,6 @@ import { ReactEditor } from '..'
 import { useEditor } from '../hooks/use-editor'
 import { NODE_TO_INDEX, NODE_TO_PARENT } from '../utils/weak-maps'
 import { RenderElementProps, RenderLeafProps } from './editable'
-import { ReactHappyWindow } from './react-happy-window/ReactHappyWindow'
 
 /**
  * Children.
@@ -20,9 +19,10 @@ const Children = (props: {
   renderElement?: (props: RenderElementProps) => JSX.Element
   renderLeaf?: (props: RenderLeafProps) => JSX.Element
   selection: Range | null
-  scrollToIndexObject: Object | undefined
   paddingTopPx: number | undefined
   paddingBottomPx: number | undefined
+  scrollToIndexObject: Object | undefined
+  ReactHappyWindow: React.Component | undefined
 }) => {
   const {
     decorate,
@@ -31,9 +31,10 @@ const Children = (props: {
     renderElement,
     renderLeaf,
     selection,
-    scrollToIndexObject,
     paddingTopPx,
     paddingBottomPx,
+    scrollToIndexObject,
+    ReactHappyWindow,
   } = props
   const editor = useEditor()
   const path = ReactEditor.findPath(editor, node)
@@ -42,8 +43,6 @@ const Children = (props: {
     Element.isElement(node) &&
     !editor.isInline(node) &&
     Editor.hasInlines(editor, node)
-
-  const isRoot = path.length === 0
 
   const renderChild = (i: number) => {
     const p = path.concat(i)
@@ -93,14 +92,14 @@ const Children = (props: {
     }
   }
 
-  if (isRoot) {
+  if (ReactHappyWindow) {
     return (
       <ReactHappyWindow
-        scrollToIndexObject={scrollToIndexObject}
         itemCount={node.children.length}
-        renderElement={renderChild}
         paddingTopPx={paddingTopPx}
         paddingBottomPx={paddingBottomPx}
+        renderElement={renderChild}
+        scrollToIndexObject={scrollToIndexObject}
       />
     )
   }
