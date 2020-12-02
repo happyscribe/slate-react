@@ -23,6 +23,7 @@ const Children = (props: {
   paddingBottomPx: number | undefined
   scrollToIndexObject: Object | undefined
   ReactHappyWindow: React.Component | undefined
+  onRender: Function | undefined
 }) => {
   const {
     decorate,
@@ -35,6 +36,7 @@ const Children = (props: {
     paddingBottomPx,
     scrollToIndexObject,
     ReactHappyWindow,
+    onRender,
   } = props
   const editor = useEditor()
   const path = ReactEditor.findPath(editor, node)
@@ -100,6 +102,7 @@ const Children = (props: {
         paddingBottomPx={paddingBottomPx}
         renderElement={renderChild}
         scrollToIndexObject={scrollToIndexObject}
+        onRender={onRender}
       />
     )
   }

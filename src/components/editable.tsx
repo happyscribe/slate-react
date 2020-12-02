@@ -83,6 +83,7 @@ export type EditableProps = {
   paddingBottomPx?: number
   scrollToIndexObject?: object
   ReactHappyWindow?: React.Component
+  onRender?: Function
 } & React.TextareaHTMLAttributes<HTMLDivElement>
 
 /**
@@ -104,6 +105,7 @@ export const Editable = (props: EditableProps) => {
     paddingBottomPx,
     scrollToIndexObject,
     ReactHappyWindow,
+    onRender,
     ...attributes
   } = props
   const editor = useSlate()
@@ -922,6 +924,7 @@ export const Editable = (props: EditableProps) => {
           paddingBottomPx={paddingBottomPx}
           scrollToIndexObject={scrollToIndexObject}
           ReactHappyWindow={ReactHappyWindow}
+          onRender={onRender}
         />
       </Component>
     </ReadOnlyContext.Provider>

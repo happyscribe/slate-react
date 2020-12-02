@@ -15,6 +15,7 @@ declare const Children: (props: {
     paddingBottomPx: number | undefined;
     scrollToIndexObject: Object | undefined;
     ReactHappyWindow: React.Component<{}, {}, any> | undefined;
+    onRender: Function | undefined;
 }) => JSX.Element;
 export default Children;
 //# sourceMappingURL=children.d.ts.map
