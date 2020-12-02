@@ -318,34 +318,42 @@ const useEditor = () => {
  * Children.
  */
 const Children = (props) => {
-    const { decorate, decorations, node, renderElement, renderLeaf, selection, } = props;
+    const { decorate, decorations, node, renderElement, renderLeaf, selection, paddingTopPx, paddingBottomPx, scrollToIndexObject, ReactHappyWindow, } = props;
     const editor = useEditor();
     const path = ReactEditor.findPath(editor, node);
     const children = [];
     const isLeafBlock = slate.Element.isElement(node) &&
         !editor.isInline(node) &&
         slate.Editor.hasInlines(editor, node);
-    for (let i = 0; i < node.children.length; i++) {
+    const renderChild = (i) => {
         const p = path.concat(i);
         const n = node.children[i];
         const key = ReactEditor.findKey(editor, n);
         const range = slate.Editor.range(editor, p);
         const sel = selection && slate.Range.intersection(range, selection);
-        const ds = decorate([n, p]);
-        for (const dec of decorations) {
-            const d = slate.Range.intersection(dec, range);
-            if (d) {
-                ds.push(d);
-            }
-        }
-        if (slate.Element.isElement(n)) {
-            children.push(React__default.createElement(MemoizedElement, { decorate: decorate, decorations: ds, element: n, key: key.id, renderElement: renderElement, renderLeaf: renderLeaf, selection: sel, elementIndex: i }));
-        }
-        else {
-            children.push(React__default.createElement(MemoizedText, { decorations: ds, key: key.id, isLast: isLeafBlock && i === node.children.length - 1, parent: node, renderLeaf: renderLeaf, text: n }));
-        }
+        // Commented out to improve performance. We don't use decorations
+        // const ds = decorate([n, p])
+        const ds = [];
+        // for (const dec of decorations) {
+        //   const d = Range.intersection(dec, range)
+        //   if (d) {
+        //     ds.push(d)
+        //   }
+        // }
         NODE_TO_INDEX.set(n, i);
         NODE_TO_PARENT.set(n, node);
+        if (slate.Element.isElement(n)) {
+            return (React__default.createElement(MemoizedElement, { decorate: decorate, decorations: ds, element: n, key: key.id, renderElement: renderElement, renderLeaf: renderLeaf, selection: sel, elementIndex: i }));
+        }
+        else {
+            return (React__default.createElement(MemoizedText, { decorations: ds, key: key.id, isLast: isLeafBlock && i === node.children.length - 1, parent: node, renderLeaf: renderLeaf, text: n }));
+        }
+    };
+    if (ReactHappyWindow) {
+        return (React__default.createElement(ReactHappyWindow, { itemCount: node.children.length, paddingTopPx: paddingTopPx, paddingBottomPx: paddingBottomPx, renderElement: renderChild, scrollToIndexObject: scrollToIndexObject }));
+    }
+    for (let i = 0; i < node.children.length; i++) {
+        children.push(renderChild(i));
     }
     return React__default.createElement(React__default.Fragment, null, children);
 };
@@ -577,7 +585,7 @@ var getEditableChild = (parent, index, direction) => {
  * Editable.
  */
 const Editable = (props) => {
-    const { autoFocus, decorate = defaultDecorate, onDOMBeforeInput: propsOnDOMBeforeInput, placeholder, readOnly = false, renderElement, renderLeaf, style = {}, as: Component = 'div', ...attributes } = props;
+    const { autoFocus, decorate = defaultDecorate, onDOMBeforeInput: propsOnDOMBeforeInput, placeholder, readOnly = false, renderElement, renderLeaf, style = {}, as: Component = 'div', paddingTopPx, paddingBottomPx, scrollToIndexObject, ReactHappyWindow, ...attributes } = props;
     const editor = useSlate();
     const ref = React.useRef(null);
     // Update internal state on each render.
@@ -1170,7 +1178,7 @@ const Editable = (props) => {
                     ReactEditor.insertData(editor, event.clipboardData);
                 }
             }, [readOnly, attributes.onPaste]) }),
-            React__default.createElement(Children, { decorate: decorate, decorations: decorations, node: editor, renderElement: renderElement, renderLeaf: renderLeaf, selection: editor.selection }))));
+            React__default.createElement(Children, { decorate: decorate, decorations: decorations, node: editor, renderElement: renderElement, renderLeaf: renderLeaf, selection: editor.selection, paddingTopPx: paddingTopPx, paddingBottomPx: paddingBottomPx, scrollToIndexObject: scrollToIndexObject, ReactHappyWindow: ReactHappyWindow }))));
 };
 /**
  * A default memoized decorate function.

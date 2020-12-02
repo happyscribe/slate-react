@@ -79,6 +79,10 @@ export type EditableProps = {
   renderElement?: (props: RenderElementProps) => JSX.Element
   renderLeaf?: (props: RenderLeafProps) => JSX.Element
   as?: React.ElementType
+  paddingTopPx?: number
+  paddingBottomPx?: number
+  scrollToIndexObject?: object
+  ReactHappyWindow?: React.Component
 } & React.TextareaHTMLAttributes<HTMLDivElement>
 
 /**
@@ -96,6 +100,10 @@ export const Editable = (props: EditableProps) => {
     renderLeaf,
     style = {},
     as: Component = 'div',
+    paddingTopPx,
+    paddingBottomPx,
+    scrollToIndexObject,
+    ReactHappyWindow,
     ...attributes
   } = props
   const editor = useSlate()
@@ -910,6 +918,10 @@ export const Editable = (props: EditableProps) => {
           renderElement={renderElement}
           renderLeaf={renderLeaf}
           selection={editor.selection}
+          paddingTopPx={paddingTopPx}
+          paddingBottomPx={paddingBottomPx}
+          scrollToIndexObject={scrollToIndexObject}
+          ReactHappyWindow={ReactHappyWindow}
         />
       </Component>
     </ReadOnlyContext.Provider>

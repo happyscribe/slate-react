@@ -19,6 +19,10 @@ const Children = (props: {
   renderElement?: (props: RenderElementProps) => JSX.Element
   renderLeaf?: (props: RenderLeafProps) => JSX.Element
   selection: Range | null
+  paddingTopPx: number | undefined
+  paddingBottomPx: number | undefined
+  scrollToIndexObject: Object | undefined
+  ReactHappyWindow: React.Component | undefined
 }) => {
   const {
     decorate,
@@ -27,6 +31,10 @@ const Children = (props: {
     renderElement,
     renderLeaf,
     selection,
+    paddingTopPx,
+    paddingBottomPx,
+    scrollToIndexObject,
+    ReactHappyWindow,
   } = props
   const editor = useEditor()
   const path = ReactEditor.findPath(editor, node)
@@ -36,24 +44,29 @@ const Children = (props: {
     !editor.isInline(node) &&
     Editor.hasInlines(editor, node)
 
-  for (let i = 0; i < node.children.length; i++) {
+  const renderChild = (i: number) => {
     const p = path.concat(i)
     const n = node.children[i] as Descendant
     const key = ReactEditor.findKey(editor, n)
     const range = Editor.range(editor, p)
     const sel = selection && Range.intersection(range, selection)
-    const ds = decorate([n, p])
 
-    for (const dec of decorations) {
-      const d = Range.intersection(dec, range)
+    // Commented out to improve performance. We don't use decorations
+    // const ds = decorate([n, p])
+    const ds = [] as Range[]
+    // for (const dec of decorations) {
+    //   const d = Range.intersection(dec, range)
 
-      if (d) {
-        ds.push(d)
-      }
-    }
+    //   if (d) {
+    //     ds.push(d)
+    //   }
+    // }
+
+    NODE_TO_INDEX.set(n, i)
+    NODE_TO_PARENT.set(n, node)
 
     if (Element.isElement(n)) {
-      children.push(
+      return (
         <ElementComponent
           decorate={decorate}
           decorations={ds}
@@ -66,7 +79,7 @@ const Children = (props: {
         />
       )
     } else {
-      children.push(
+      return (
         <TextComponent
           decorations={ds}
           key={key.id}
@@ -77,9 +90,22 @@ const Children = (props: {
         />
       )
     }
+  }
 
-    NODE_TO_INDEX.set(n, i)
-    NODE_TO_PARENT.set(n, node)
+  if (ReactHappyWindow) {
+    return (
+      <ReactHappyWindow
+        itemCount={node.children.length}
+        paddingTopPx={paddingTopPx}
+        paddingBottomPx={paddingBottomPx}
+        renderElement={renderChild}
+        scrollToIndexObject={scrollToIndexObject}
+      />
+    )
+  }
+
+  for (let i = 0; i < node.children.length; i++) {
+    children.push(renderChild(i))
   }
 
   return <React.Fragment>{children}</React.Fragment>
