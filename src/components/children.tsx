@@ -19,11 +19,8 @@ const Children = (props: {
   renderElement?: (props: RenderElementProps) => JSX.Element
   renderLeaf?: (props: RenderLeafProps) => JSX.Element
   selection: Range | null
-  paddingTopPx: number | undefined
-  paddingBottomPx: number | undefined
-  scrollToIndexObject: Object | undefined
   ReactHappyWindow: React.Component | undefined
-  onRender: Function | undefined
+  reactHappyWindowProps: Object | undefined
 }) => {
   const {
     decorate,
@@ -32,11 +29,8 @@ const Children = (props: {
     renderElement,
     renderLeaf,
     selection,
-    paddingTopPx,
-    paddingBottomPx,
-    scrollToIndexObject,
     ReactHappyWindow,
-    onRender,
+    reactHappyWindowProps,
   } = props
   const editor = useEditor()
   const path = ReactEditor.findPath(editor, node)
@@ -98,11 +92,8 @@ const Children = (props: {
     return (
       <ReactHappyWindow
         itemCount={node.children.length}
-        paddingTopPx={paddingTopPx}
-        paddingBottomPx={paddingBottomPx}
         renderElement={renderChild}
-        scrollToIndexObject={scrollToIndexObject}
-        onRender={onRender}
+        reactHappyWindowProps={reactHappyWindowProps}
       />
     )
   }

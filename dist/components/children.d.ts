@@ -11,11 +11,8 @@ declare const Children: (props: {
     renderElement?: ((props: RenderElementProps) => JSX.Element) | undefined;
     renderLeaf?: ((props: RenderLeafProps) => JSX.Element) | undefined;
     selection: Range | null;
-    paddingTopPx: number | undefined;
-    paddingBottomPx: number | undefined;
-    scrollToIndexObject: Object | undefined;
     ReactHappyWindow: React.Component<{}, {}, any> | undefined;
-    onRender: Function | undefined;
+    reactHappyWindowProps: Object | undefined;
 }) => JSX.Element;
 export default Children;
 //# sourceMappingURL=children.d.ts.map

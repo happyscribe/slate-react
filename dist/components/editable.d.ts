@@ -38,11 +38,8 @@ export declare type EditableProps = {
     renderElement?: (props: RenderElementProps) => JSX.Element;
     renderLeaf?: (props: RenderLeafProps) => JSX.Element;
     as?: React.ElementType;
-    paddingTopPx?: number;
-    paddingBottomPx?: number;
-    scrollToIndexObject?: object;
     ReactHappyWindow?: React.Component;
-    onRender?: Function;
+    reactHappyWindowProps?: object;
 } & React.TextareaHTMLAttributes<HTMLDivElement>;
 /**
  * Editable.

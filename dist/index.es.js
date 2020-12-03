@@ -311,7 +311,7 @@ const useEditor = () => {
  * Children.
  */
 const Children = (props) => {
-    const { decorate, decorations, node, renderElement, renderLeaf, selection, paddingTopPx, paddingBottomPx, scrollToIndexObject, ReactHappyWindow, onRender, } = props;
+    const { decorate, decorations, node, renderElement, renderLeaf, selection, ReactHappyWindow, reactHappyWindowProps, } = props;
     const editor = useEditor();
     const path = ReactEditor.findPath(editor, node);
     const children = [];
@@ -343,7 +343,7 @@ const Children = (props) => {
         }
     };
     if (ReactHappyWindow) {
-        return (React.createElement(ReactHappyWindow, { itemCount: node.children.length, paddingTopPx: paddingTopPx, paddingBottomPx: paddingBottomPx, renderElement: renderChild, scrollToIndexObject: scrollToIndexObject, onRender: onRender }));
+        return (React.createElement(ReactHappyWindow, { itemCount: node.children.length, renderElement: renderChild, reactHappyWindowProps: reactHappyWindowProps }));
     }
     for (let i = 0; i < node.children.length; i++) {
         children.push(renderChild(i));
@@ -578,7 +578,7 @@ var getEditableChild = (parent, index, direction) => {
  * Editable.
  */
 const Editable = (props) => {
-    const { autoFocus, decorate = defaultDecorate, onDOMBeforeInput: propsOnDOMBeforeInput, placeholder, readOnly = false, renderElement, renderLeaf, style = {}, as: Component = 'div', paddingTopPx, paddingBottomPx, scrollToIndexObject, ReactHappyWindow, onRender, ...attributes } = props;
+    const { autoFocus, decorate = defaultDecorate, onDOMBeforeInput: propsOnDOMBeforeInput, placeholder, readOnly = false, renderElement, renderLeaf, style = {}, as: Component = 'div', ReactHappyWindow, reactHappyWindowProps, ...attributes } = props;
     const editor = useSlate();
     const ref = useRef(null);
     // Update internal state on each render.
@@ -1171,7 +1171,7 @@ const Editable = (props) => {
                     ReactEditor.insertData(editor, event.clipboardData);
                 }
             }, [readOnly, attributes.onPaste]) }),
-            React.createElement(Children, { decorate: decorate, decorations: decorations, node: editor, renderElement: renderElement, renderLeaf: renderLeaf, selection: editor.selection, paddingTopPx: paddingTopPx, paddingBottomPx: paddingBottomPx, scrollToIndexObject: scrollToIndexObject, ReactHappyWindow: ReactHappyWindow, onRender: onRender }))));
+            React.createElement(Children, { decorate: decorate, decorations: decorations, node: editor, renderElement: renderElement, renderLeaf: renderLeaf, selection: editor.selection, ReactHappyWindow: ReactHappyWindow, reactHappyWindowProps: reactHappyWindowProps }))));
 };
 /**
  * A default memoized decorate function.
