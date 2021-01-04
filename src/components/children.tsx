@@ -30,7 +30,7 @@ const Children = (props: {
     renderLeaf,
     selection,
     ReactHappyWindow,
-    reactHappyWindowProps,
+    reactHappyWindowProps = {},
   } = props
   const editor = useEditor()
   const path = ReactEditor.findPath(editor, node)
@@ -92,8 +92,8 @@ const Children = (props: {
     return (
       <ReactHappyWindow
         itemCount={node.children.length}
-        renderElement={renderChild}
-        reactHappyWindowProps={reactHappyWindowProps}
+        renderItem={renderChild}
+        {...reactHappyWindowProps}
       />
     )
   }

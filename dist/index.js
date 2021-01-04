@@ -318,7 +318,7 @@ const useEditor = () => {
  * Children.
  */
 const Children = (props) => {
-    const { decorate, decorations, node, renderElement, renderLeaf, selection, ReactHappyWindow, reactHappyWindowProps, } = props;
+    const { decorate, decorations, node, renderElement, renderLeaf, selection, ReactHappyWindow, reactHappyWindowProps = {}, } = props;
     const editor = useEditor();
     const path = ReactEditor.findPath(editor, node);
     const children = [];
@@ -350,7 +350,7 @@ const Children = (props) => {
         }
     };
     if (ReactHappyWindow) {
-        return (React__default.createElement(ReactHappyWindow, { itemCount: node.children.length, renderElement: renderChild, reactHappyWindowProps: reactHappyWindowProps }));
+        return (React__default.createElement(ReactHappyWindow, Object.assign({ itemCount: node.children.length, renderItem: renderChild }, reactHappyWindowProps)));
     }
     for (let i = 0; i < node.children.length; i++) {
         children.push(renderChild(i));
