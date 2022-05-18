@@ -1,8 +1,8 @@
 import React, { useLayoutEffect, useEffect, useRef, createContext, useContext, useMemo, useCallback, useState } from 'react';
 import { Path, Node as Node$1, Editor, Text as Text$1, Range, Element as Element$1, Transforms } from 'slate';
+import getDirection from 'direction';
 import debounce from 'debounce';
 import scrollIntoView from 'scroll-into-view-if-needed';
-import getDirection from 'direction';
 import { isKeyHotkey } from 'is-hotkey';
 import ReactDOM from 'react-dom';
 
@@ -578,7 +578,7 @@ var getEditableChild = (parent, index, direction) => {
  * Editable.
  */
 const Editable = (props) => {
-    const { autoFocus, decorate = defaultDecorate, onDOMBeforeInput: propsOnDOMBeforeInput, placeholder, readOnly = false, renderElement, renderLeaf, style = {}, as: Component = 'div', ReactHappyWindow, reactHappyWindowProps, ...attributes } = props;
+    const { autoFocus, decorate = defaultDecorate, onDOMBeforeInput: propsOnDOMBeforeInput, placeholder, readOnly = false, renderElement, renderLeaf, style = {}, as: Component = 'div', ReactHappyWindow, reactHappyWindowProps, happyWindowRef, ...attributes } = props;
     const editor = useSlate();
     const ref = useRef(null);
     // Update internal state on each render.
@@ -1000,6 +1000,8 @@ const Editable = (props) => {
                     !isEventHandled(event, attributes.onKeyDown)) {
                     const { nativeEvent } = event;
                     const { selection } = editor;
+                    const element = editor.children[selection !== null ? selection.focus.path[0] : 0];
+                    const isRTL = getDirection(Node$1.string(element)) === 'rtl';
                     // COMPAT: Since we prevent the default behavior on
                     // `beforeinput` events, the browser doesn't think there's ever
                     // any history stack to undo or redo, so we have to manage these
@@ -1054,7 +1056,7 @@ const Editable = (props) => {
                     if (Hotkeys.isMoveBackward(nativeEvent)) {
                         event.preventDefault();
                         if (selection && Range.isCollapsed(selection)) {
-                            Transforms.move(editor, { reverse: true });
+                            Transforms.move(editor, { reverse: !isRTL });
                         }
                         else {
                             Transforms.collapse(editor, { edge: 'start' });
@@ -1064,7 +1066,7 @@ const Editable = (props) => {
                     if (Hotkeys.isMoveForward(nativeEvent)) {
                         event.preventDefault();
                         if (selection && Range.isCollapsed(selection)) {
-                            Transforms.move(editor);
+                            Transforms.move(editor, { reverse: isRTL });
                         }
                         else {
                             Transforms.collapse(editor, { edge: 'end' });
@@ -1073,12 +1075,12 @@ const Editable = (props) => {
                     }
                     if (Hotkeys.isMoveWordBackward(nativeEvent)) {
                         event.preventDefault();
-                        Transforms.move(editor, { unit: 'word', reverse: true });
+                        Transforms.move(editor, { unit: 'word', reverse: !isRTL });
                         return;
                     }
                     if (Hotkeys.isMoveWordForward(nativeEvent)) {
                         event.preventDefault();
-                        Transforms.move(editor, { unit: 'word' });
+                        Transforms.move(editor, { unit: 'word', reverse: isRTL });
                         return;
                     }
                     // COMPAT: Firefox doesn't support the `beforeinput` event, so we

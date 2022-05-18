@@ -8,6 +8,7 @@ import {
   Text,
   Transforms,
 } from 'slate'
+import getDirection from 'direction'
 import debounce from 'debounce'
 import scrollIntoView from 'scroll-into-view-if-needed'
 
@@ -100,6 +101,7 @@ export const Editable = (props: EditableProps) => {
     as: Component = 'div',
     ReactHappyWindow,
     reactHappyWindowProps,
+    happyWindowRef,
     ...attributes
   } = props
   const editor = useSlate()
@@ -696,6 +698,12 @@ export const Editable = (props: EditableProps) => {
               const { nativeEvent } = event
               const { selection } = editor
 
+              const element =
+                editor.children[
+                  selection !== null ? selection.focus.path[0] : 0
+                ]
+              const isRTL = getDirection(Node.string(element)) === 'rtl'
+
               // COMPAT: Since we prevent the default behavior on
               // `beforeinput` events, the browser doesn't think there's ever
               // any history stack to undo or redo, so we have to manage these
@@ -761,7 +769,7 @@ export const Editable = (props: EditableProps) => {
                 event.preventDefault()
 
                 if (selection && Range.isCollapsed(selection)) {
-                  Transforms.move(editor, { reverse: true })
+                  Transforms.move(editor, { reverse: !isRTL })
                 } else {
                   Transforms.collapse(editor, { edge: 'start' })
                 }
@@ -773,7 +781,7 @@ export const Editable = (props: EditableProps) => {
                 event.preventDefault()
 
                 if (selection && Range.isCollapsed(selection)) {
-                  Transforms.move(editor)
+                  Transforms.move(editor, { reverse: isRTL })
                 } else {
                   Transforms.collapse(editor, { edge: 'end' })
                 }
@@ -783,13 +791,13 @@ export const Editable = (props: EditableProps) => {
 
               if (Hotkeys.isMoveWordBackward(nativeEvent)) {
                 event.preventDefault()
-                Transforms.move(editor, { unit: 'word', reverse: true })
+                Transforms.move(editor, { unit: 'word', reverse: !isRTL })
                 return
               }
 
               if (Hotkeys.isMoveWordForward(nativeEvent)) {
                 event.preventDefault()
-                Transforms.move(editor, { unit: 'word' })
+                Transforms.move(editor, { unit: 'word', reverse: isRTL })
                 return
               }
 

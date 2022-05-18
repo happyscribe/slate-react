@@ -7,9 +7,9 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 var React = require('react');
 var React__default = _interopDefault(React);
 var slate = require('slate');
+var getDirection = _interopDefault(require('direction'));
 var debounce = _interopDefault(require('debounce'));
 var scrollIntoView = _interopDefault(require('scroll-into-view-if-needed'));
-var getDirection = _interopDefault(require('direction'));
 var isHotkey = require('is-hotkey');
 var ReactDOM = _interopDefault(require('react-dom'));
 
@@ -585,7 +585,7 @@ var getEditableChild = (parent, index, direction) => {
  * Editable.
  */
 const Editable = (props) => {
-    const { autoFocus, decorate = defaultDecorate, onDOMBeforeInput: propsOnDOMBeforeInput, placeholder, readOnly = false, renderElement, renderLeaf, style = {}, as: Component = 'div', ReactHappyWindow, reactHappyWindowProps, ...attributes } = props;
+    const { autoFocus, decorate = defaultDecorate, onDOMBeforeInput: propsOnDOMBeforeInput, placeholder, readOnly = false, renderElement, renderLeaf, style = {}, as: Component = 'div', ReactHappyWindow, reactHappyWindowProps, happyWindowRef, ...attributes } = props;
     const editor = useSlate();
     const ref = React.useRef(null);
     // Update internal state on each render.
@@ -1007,6 +1007,8 @@ const Editable = (props) => {
                     !isEventHandled(event, attributes.onKeyDown)) {
                     const { nativeEvent } = event;
                     const { selection } = editor;
+                    const element = editor.children[selection !== null ? selection.focus.path[0] : 0];
+                    const isRTL = getDirection(slate.Node.string(element)) === 'rtl';
                     // COMPAT: Since we prevent the default behavior on
                     // `beforeinput` events, the browser doesn't think there's ever
                     // any history stack to undo or redo, so we have to manage these
@@ -1061,7 +1063,7 @@ const Editable = (props) => {
                     if (Hotkeys.isMoveBackward(nativeEvent)) {
                         event.preventDefault();
                         if (selection && slate.Range.isCollapsed(selection)) {
-                            slate.Transforms.move(editor, { reverse: true });
+                            slate.Transforms.move(editor, { reverse: !isRTL });
                         }
                         else {
                             slate.Transforms.collapse(editor, { edge: 'start' });
@@ -1071,7 +1073,7 @@ const Editable = (props) => {
                     if (Hotkeys.isMoveForward(nativeEvent)) {
                         event.preventDefault();
                         if (selection && slate.Range.isCollapsed(selection)) {
-                            slate.Transforms.move(editor);
+                            slate.Transforms.move(editor, { reverse: isRTL });
                         }
                         else {
                             slate.Transforms.collapse(editor, { edge: 'end' });
@@ -1080,12 +1082,12 @@ const Editable = (props) => {
                     }
                     if (Hotkeys.isMoveWordBackward(nativeEvent)) {
                         event.preventDefault();
-                        slate.Transforms.move(editor, { unit: 'word', reverse: true });
+                        slate.Transforms.move(editor, { unit: 'word', reverse: !isRTL });
                         return;
                     }
                     if (Hotkeys.isMoveWordForward(nativeEvent)) {
                         event.preventDefault();
-                        slate.Transforms.move(editor, { unit: 'word' });
+                        slate.Transforms.move(editor, { unit: 'word', reverse: isRTL });
                         return;
                     }
                     // COMPAT: Firefox doesn't support the `beforeinput` event, so we
