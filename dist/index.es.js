@@ -1056,7 +1056,15 @@ const Editable = (props) => {
                     if (Hotkeys.isMoveBackward(nativeEvent)) {
                         event.preventDefault();
                         if (selection && Range.isCollapsed(selection)) {
-                            Transforms.move(editor, { reverse: !isRTL });
+                            const { anchor } = selection;
+                            if (anchor.offset === 1 && anchor.path[1] > 0) {
+                                // Hack to position the cursor at the end of the previous text node
+                                Transforms.move(editor, { reverse: !isRTL, distance: 2 });
+                                Transforms.move(editor, { reverse: isRTL });
+                            }
+                            else {
+                                Transforms.move(editor, { reverse: !isRTL });
+                            }
                         }
                         else {
                             Transforms.collapse(editor, { edge: 'start' });

@@ -1063,7 +1063,15 @@ const Editable = (props) => {
                     if (Hotkeys.isMoveBackward(nativeEvent)) {
                         event.preventDefault();
                         if (selection && slate.Range.isCollapsed(selection)) {
-                            slate.Transforms.move(editor, { reverse: !isRTL });
+                            const { anchor } = selection;
+                            if (anchor.offset === 1 && anchor.path[1] > 0) {
+                                // Hack to position the cursor at the end of the previous text node
+                                slate.Transforms.move(editor, { reverse: !isRTL, distance: 2 });
+                                slate.Transforms.move(editor, { reverse: isRTL });
+                            }
+                            else {
+                                slate.Transforms.move(editor, { reverse: !isRTL });
+                            }
                         }
                         else {
                             slate.Transforms.collapse(editor, { edge: 'start' });
