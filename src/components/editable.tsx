@@ -436,7 +436,6 @@ export const Editable = (props: EditableProps) => {
         autoCapitalize={IS_FIREFOX ? undefined : attributes.autoCapitalize}
         data-slate-editor
         data-slate-node="value"
-        contentEditable={readOnly ? undefined : true}
         suppressContentEditableWarning
         ref={ref}
         style={{
