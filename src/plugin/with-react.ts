@@ -1,102 +1,77 @@
 import ReactDOM from 'react-dom'
-import { Editor, Node, Path, Operation, Transforms } from 'slate'
-
+import { BaseEditor, Node } from 'slate'
+import { withDOM, IS_ANDROID, EDITOR_TO_PENDING_SELECTION } from 'slate-dom'
 import { ReactEditor } from './react-editor'
-import { Key } from '../utils/key'
-import { EDITOR_TO_ON_CHANGE, NODE_TO_KEY } from '../utils/weak-maps'
+import { REACT_MAJOR_VERSION } from '../utils/environment'
+import { getChunkTreeForNode } from '../chunking'
 
 /**
  * `withReact` adds React and DOM specific behaviors to the editor.
+ *
+ * If you are using TypeScript, you must extend Slate's CustomTypes to use
+ * this plugin.
+ *
+ * See https://docs.slatejs.org/concepts/11-typescript to learn how.
  */
+export const withReact = <T extends BaseEditor>(
+  editor: T,
+  clipboardFormatKey = 'x-slate-fragment'
+): T & ReactEditor => {
+  let e = editor as T & ReactEditor
 
-export const withReact = <T extends Editor>(editor: T) => {
-  const e = editor as T & ReactEditor
-  const { apply, onChange } = e
+  e = withDOM(e, clipboardFormatKey)
 
-  e.apply = (op: Operation) => {
-    const matches: [Path, Key][] = []
+  const { onChange, apply, insertText } = e
 
-    switch (op.type) {
-      case 'insert_text':
-      case 'remove_text':
-      case 'set_node': {
-        for (const [node, path] of Editor.levels(e, { at: op.path })) {
-          const key = ReactEditor.findKey(e, node)
-          matches.push([path, key])
-        }
+  e.getChunkSize = () => null
 
-        break
-      }
+  if (IS_ANDROID) {
+    e.insertText = (text, options) => {
+      // COMPAT: Android devices, specifically Samsung devices, experience cursor jumping.
+      // This issue occurs when the ⁠insertText function is called immediately after typing.
+      // The problem arises because typing schedules a selection change.
+      // However, this selection change is only executed after the ⁠insertText function.
+      // As a result, the already obsolete selection is applied, leading to incorrect
+      // final cursor position.
+      EDITOR_TO_PENDING_SELECTION.delete(e)
 
-      case 'insert_node':
-      case 'remove_node':
-      case 'merge_node':
-      case 'split_node': {
-        for (const [node, path] of Editor.levels(e, {
-          at: Path.parent(op.path),
-        })) {
-          const key = ReactEditor.findKey(e, node)
-          matches.push([path, key])
-        }
-
-        break
-      }
-
-      case 'move_node': {
-        // TODO
-        break
-      }
-    }
-
-    apply(op)
-
-    for (const [path, key] of matches) {
-      const [node] = Editor.node(e, path)
-      NODE_TO_KEY.set(node, key)
+      return insertText(text, options)
     }
   }
 
-  e.insertData = (data: DataTransfer) => {
-    const fragment = data.getData('application/x-slate-fragment')
-
-    if (fragment) {
-      const decoded = decodeURIComponent(window.atob(fragment))
-      const parsed = JSON.parse(decoded) as Node[]
-      Transforms.insertFragment(e, parsed)
-      return
-    }
-
-    const text = data.getData('text/plain')
-
-    if (text) {
-      const lines = text.split('\n')
-      let split = false
-
-      for (const line of lines) {
-        if (split) {
-          Transforms.splitNodes(e)
-        }
-
-        Transforms.insertText(e, line)
-        split = true
-      }
-    }
-  }
-
-  e.onChange = () => {
-    // COMPAT: React doesn't batch `setState` hook calls, which means that the
-    // children and selection can get out of sync for one render pass. So we
-    // have to use this unstable API to ensure it batches them. (2019/12/03)
+  e.onChange = options => {
+    // COMPAT: React < 18 doesn't batch `setState` hook calls, which means
+    // that the children and selection can get out of sync for one render
+    // pass. So we have to use this unstable API to ensure it batches them.
+    // (2019/12/03)
     // https://github.com/facebook/react/issues/14259#issuecomment-439702367
-    ReactDOM.unstable_batchedUpdates(() => {
-      const onContextChange = EDITOR_TO_ON_CHANGE.get(e)
+    const maybeBatchUpdates =
+      REACT_MAJOR_VERSION < 18
+        ? ReactDOM.unstable_batchedUpdates
+        : (callback: () => void) => callback()
 
-      if (onContextChange) {
-        onContextChange()
-      }
-
-      onChange()
+    maybeBatchUpdates(() => {
+      onChange(options)
     })
+  }
+
+  // On move_node, if the chunking optimization is enabled for the parent of the
+  // node being moved, add the moved node to the movedNodeKeys set of the
+  // parent's chunk tree.
+  e.apply = operation => {
+    if (operation.type === 'move_node') {
+      const parent = Node.parent(e, operation.path)
+      const chunking = !!e.getChunkSize(parent)
+
+      if (chunking) {
+        const node = Node.get(e, operation.path)
+        const chunkTree = getChunkTreeForNode(e, parent)
+        const key = ReactEditor.findKey(e, node)
+        chunkTree.movedNodeKeys.add(key)
+      }
+    }
+
+    apply(operation)
   }
 
   return e
