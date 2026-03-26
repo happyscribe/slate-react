@@ -831,7 +831,7 @@ const Editable = (props) => {
         , Object.assign({ "data-gramm": false, role: readOnly ? undefined : 'textbox' }, attributes, { 
             // COMPAT: Firefox doesn't support the `beforeinput` event, so we'd
             // have to use hacks to make these replacement-based features work.
-            spellCheck: IS_FIREFOX ? undefined : attributes.spellCheck, autoCorrect: IS_FIREFOX ? undefined : attributes.autoCorrect, autoCapitalize: IS_FIREFOX ? undefined : attributes.autoCapitalize, "data-slate-editor": true, "data-slate-node": "value", contentEditable: readOnly ? undefined : true, suppressContentEditableWarning: true, ref: ref, style: {
+            spellCheck: IS_FIREFOX ? undefined : attributes.spellCheck, autoCorrect: IS_FIREFOX ? undefined : attributes.autoCorrect, autoCapitalize: IS_FIREFOX ? undefined : attributes.autoCapitalize, "data-slate-editor": true, "data-slate-node": "value", suppressContentEditableWarning: true, ref: ref, style: {
                 // Prevent the default outline styles.
                 outline: 'none',
                 // Preserve adjacent whitespace and new lines.
@@ -1258,6 +1258,12 @@ const setFragmentData = (dataTransfer, editor) => {
             attach = node;
         }
     });
+    // COMPAT: If the cloned contents are empty (e.g. because the DOM was
+    // re-rendered between the selection being set and the copy event firing),
+    // bail out to avoid a crash on setAttribute below.
+    if (!attach) {
+        return;
+    }
     // COMPAT: If the end node is a void node, we need to move the end of the
     // range from the void node's spacer span, to the end of the void node's
     // content, since the spacer is before void's content in the DOM.

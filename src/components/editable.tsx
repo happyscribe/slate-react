@@ -1050,6 +1050,13 @@ const setFragmentData = (
     }
   })
 
+  // COMPAT: If the cloned contents are empty (e.g. because the DOM was
+  // re-rendered between the selection being set and the copy event firing),
+  // bail out to avoid a crash on setAttribute below.
+  if (!attach) {
+    return
+  }
+
   // COMPAT: If the end node is a void node, we need to move the end of the
   // range from the void node's spacer span, to the end of the void node's
   // content, since the spacer is before void's content in the DOM.
