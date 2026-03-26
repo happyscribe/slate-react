@@ -838,7 +838,7 @@ const Editable = (props) => {
         , Object.assign({ "data-gramm": false, role: readOnly ? undefined : 'textbox' }, attributes, { 
             // COMPAT: Firefox doesn't support the `beforeinput` event, so we'd
             // have to use hacks to make these replacement-based features work.
-            spellCheck: IS_FIREFOX ? undefined : attributes.spellCheck, autoCorrect: IS_FIREFOX ? undefined : attributes.autoCorrect, autoCapitalize: IS_FIREFOX ? undefined : attributes.autoCapitalize, "data-slate-editor": true, "data-slate-node": "value", suppressContentEditableWarning: true, ref: ref, style: {
+            spellCheck: IS_FIREFOX ? undefined : attributes.spellCheck, autoCorrect: IS_FIREFOX ? undefined : attributes.autoCorrect, autoCapitalize: IS_FIREFOX ? undefined : attributes.autoCapitalize, "data-slate-editor": true, "data-slate-node": "value", contentEditable: readOnly ? undefined : true, suppressContentEditableWarning: true, ref: ref, style: {
                 // Prevent the default outline styles.
                 outline: 'none',
                 // Preserve adjacent whitespace and new lines.
