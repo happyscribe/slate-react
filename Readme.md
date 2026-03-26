@@ -70,11 +70,11 @@ Commit: [`77ef1b3`](https://github.com/happyscribe/slate-react/commit/77ef1b3)
 
 Adds an early return when `ReactEditor.toSlateRange` returns a falsy value during `beforeInput` handling, preventing a crash when the target range can't be resolved.
 
-### 5. `contentEditable` removed from root element ([`src/components/editable.tsx`](src/components/editable.tsx))
+### 5. Null-safety guard in `setFragmentData` ([`src/components/editable.tsx`](src/components/editable.tsx))
 
-Commit: [`878fbcd`](https://github.com/happyscribe/slate-react/commit/878fbcd)
+Commits: [`87498ca`](https://github.com/happyscribe/slate-react/commit/87498ca), [`8565952`](https://github.com/happyscribe/slate-react/commit/8565952)
 
-The `contentEditable={readOnly ? undefined : true}` attribute was removed from the root `<div>`. The consuming app is expected to set this attribute explicitly via the `happyWindowRef` or wrapper.
+Adds an early return when `cloneContents()` returns an empty `DocumentFragment` (no `attach` element), preventing a `TypeError` on `setAttribute` during copy/paste when the DOM re-renders between selection and the copy event.
 
 ### 6. Decorations disabled for performance ([`src/components/children.tsx`](src/components/children.tsx))
 
